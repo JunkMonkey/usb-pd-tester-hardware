@@ -47,7 +47,7 @@ Module 6: 调试与烧录         SWD + USART1 ISP + ESD 保护
 | +3V3 | INA226.VS | +3V3 | 经 100nF 至 GND |
 | +3V3 | OLED.VCC | +3V3 | — |
 | +3V3 | SWD_Pin4 | +3V3 | 排针输出，仅供电参考 |
-| +3V3 | UART_Pin4 | +3V3 | 排针输出，仅供电参考 |
+| +3V3 | J2 UART_Pin3 (GND) 不接 VCC | — | UART 排针为 3P (TX/RX/GND)，不对外供电 |
 | +3V3 | R_PU_MODE (10kΩ) | +3V3 | KEY_MODE 上拉 |
 | +3V3 | R_PU_CONFIRM (10kΩ) | +3V3 | KEY_CONFIRM 上拉 |
 
@@ -72,17 +72,20 @@ Module 6: 调试与烧录         SWD + USART1 ISP + ESD 保护
 
 | 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
 |---------------|-----------------|------|-----------|
-| CH32V203.VDD_1 (Pin 9) | +3V3 | +3V3 | C100nF → GND |
-| CH32V203.VSS_1 (Pin 8) | GND | GND | — |
-| CH32V203.VDD_2 (Pin 24) | +3V3 | +3V3 | C100nF → GND |
-| CH32V203.VSS_2 (Pin 23) | GND | GND | — |
-| CH32V203.VDD_3 (Pin 36) | +3V3 | +3V3 | C100nF → GND |
-| CH32V203.VSS_3 (Pin 35) | GND | GND | — |
-| CH32V203.VDD_4 (Pin 48) | +3V3 | +3V3 | C100nF → GND |
-| CH32V203.VSS_4 (Pin 47) | GND | GND | — |
-| CH32V203.VDDA (Pin 13) | +3V3_ANA | +3V3_ANA | 经 L1 + C5//C6 |
-| CH32V203.VSSA (Pin 12) | GND | GND | — |
+| CH32V203.VBAT (Pin 1) | +3V3 | +3V3 | RTC 备份域供电 |
+| CH32V203.VDD_IO_1 (Pin 24) | +3V3 | +3V3 | C100nF → GND |
+| CH32V203.VSS_1 (Pin 23) | GND | GND | — |
+| CH32V203.VDD_2 (Pin 36) | +3V3 | +3V3 | C100nF → GND |
+| CH32V203.VSS_2 (Pin 35) | GND | GND | — |
+| CH32V203.VDD_IO_3 (Pin 48) | +3V3 | +3V3 | C100nF → GND |
+| CH32V203.VSS_3 (Pin 47) | GND | GND | — |
+| CH32V203.VDDA (Pin 9) | +3V3_ANA | +3V3_ANA | 经 L1 + C5//C6 |
+| CH32V203.VSSA (Pin 8) | GND | GND | — |
 | CH32V203.NRST (Pin 7) | RST | RST | 10kΩ 上拉至 +3V3 + 100nF 对 GND |
+| CH32V203.OSC_IN (Pin 5) | Y2.Pin1 | OSC_IN | 8MHz HSE 晶振输入 |
+| CH32V203.OSC_OUT (Pin 6) | Y2.Pin2 | OSC_OUT | 8MHz HSE 晶振输出 |
+| Y2.Pin1 | C17 → GND | OSC_IN | 负载电容 12pF C0G/NP0 |
+| Y2.Pin2 | C18 → GND | OSC_OUT | 负载电容 12pF C0G/NP0 |
 | CH32V203.PC14 (Pin 3) | Y1.Pin1 | OSC32_IN | 晶振 TKD SF32WK32768D31T002 |
 | CH32V203.PC15 (Pin 4) | Y1.Pin2 | OSC32_OUT | 晶振 TKD SF32WK32768D31T002 |
 | Y1.Pin1 | C7 → GND | OSC32_IN | 负载电容 12pF C0G/NP0 |
@@ -94,11 +97,11 @@ Module 6: 调试与烧录         SWD + USART1 ISP + ESD 保护
 | CH32V203.PA10 (Pin 31) | UART_Pin2 | UART_RX | 见 Module 6 |
 | CH32V203.PB6 (Pin 42) | INA226.SCL + OLED.SCL | I2C_SCL | 4.7kΩ 上拉至 +3V3 |
 | CH32V203.PB7 (Pin 43) | INA226.SDA + OLED.SDA | I2C_SDA | 4.7kΩ 上拉至 +3V3 |
-| CH32V203.PA0 (Pin 14) | KEY_MODE | KEY_MODE | 10kΩ 上拉 + 按键对 GND |
-| CH32V203.PA1 (Pin 15) | KEY_CONFIRM | KEY_CONFIRM | 10kΩ 上拉 + 按键对 GND |
-| CH32V203.PA2 (Pin 16) | CH224K.CFG1 | CFG1 | PD 档位选择 |
-| CH32V203.PA3 (Pin 17) | CH224K.CFG2 | CFG2 | PD 档位选择 |
-| CH32V203.PA4 (Pin 20) | CH224K.CFG3 | CFG3 | PD 档位选择 |
+| CH32V203.PA0 (Pin 10) | KEY_MODE | KEY_MODE | 10kΩ 上拉 + 按键对 GND |
+| CH32V203.PA1 (Pin 11) | KEY_CONFIRM | KEY_CONFIRM | 10kΩ 上拉 + 按键对 GND |
+| CH32V203.PA2 (Pin 12) | CH224K.CFG1 | CFG1 | PD 档位选择 |
+| CH32V203.PA3 (Pin 13) | CH224K.CFG2 | CFG2 | PD 档位选择 |
+| CH32V203.PA4 (Pin 14) | CH224K.CFG3 | CFG3 | PD 档位选择 |
 | CH32V203.PA11 (Pin 32) | USB-C.D- (A7/B7) | USB_DM | USB ISP 烧录数据线 |
 | CH32V203.PA12 (Pin 33) | USB-C.D+ (A6/B6) | USB_DP | USB ISP 烧录数据线 |
 
@@ -108,15 +111,17 @@ Module 6: 调试与烧录         SWD + USART1 ISP + ESD 保护
 |----------|------|------|------|----------|
 | U2 | CH32V203C8T6 | LQFP-48 | RISC-V 144MHz 64K/20K | C3001172 |
 | Y1 | TKD SF32WK32768D31T002 | SMD3215-2P | 32.768kHz, 12.5pF, ±20ppm, ESR≤70kΩ | C271654 |
-| C7, C8 | MLCC 12pF | 0603 | NPO/COG | — |
-| C9~C12 | MLCC 100nF | 0603 | 16V X7R | MCU VDD 去耦 ×4 |
+| Y2 | JLYE Y32258MCBCX | SMD3225-4P | 8MHz, 8pF, ±10ppm, ±20ppm | C49158084 |
+| C7, C8 | MLCC 12pF | 0603 | NPO/COG | 32.768kHz 负载电容 |
+| C17, C18 | MLCC 12pF | 0603 | NPO/COG | 8MHz HSE 负载电容（EVT 可微调至 15pF） |
+| C9~C12 | MLCC 100nF | 0603 | 16V X7R | MCU VDD_IO_1/2/3 + VDD_2 去耦 ×4 |
 | R_PU_NRST | 10kΩ | 0603 | — | 复位上拉 |
 | C_NRST | 100nF | 0603 | 16V X7R | 复位滤波 |
 | R_PU_I2C | 4.7kΩ ×2 | 0603 | — | I²C SCL/SDA 上拉 |
 
-> ⚠️ **【待核实 #1 — 引脚编号】** 当前文档中 PA0~PA4 对应 Pin 14/15/16/17/20，VDDA/VSSA 对应 Pin 13/12。如果 CH32V203C8T6 与 STM32F103C8T6 LQFP-48 引脚兼容（这是沁恒的核心卖点），则 STM32 上：PA0=Pin10, PA1=Pin11, PA2=Pin12, PA3=Pin13, PA4=Pin14, VSSA=Pin8, VDDA=Pin9。当前文档的 PA0~PA4 引脚号全部偏移了 +4，且 VDDA/VSSA 与 STM32 位置互换了。**请对照 CH32V203 官方 datasheet 的 LQFP-48 封装引脚图逐脚核实。** 如引脚号错误，PCB 将全部错位。
+> ✅ **【已核实 #1 — 引脚编号】** 已对照 CH32V203 数据手册 V2.8 表 3-1-1 逐脚核实。CH32V203C8T6 与 STM32F103C8T6 LQFP-48 **引脚兼容**，PA0=Pin10, PA1=Pin11, PA2=Pin12, PA3=Pin13, PA4=Pin14, VDDA=Pin9, VSSA=Pin8, NRST=Pin7。上方连接表已全部使用正确引脚编号。
 
-> ⚠️ **【待核实 #2 — USB HSE 晶振缺失】** 当前方案仅配 32.768kHz RTC 晶振，系统主时钟走内部 HSI(8MHz) → PLL → 144MHz。USB 2.0 FS 规范要求时钟精度 ≤±0.25%，内部 HSI 典型精度为 ±1%。需查 CH32V203 参考手册时钟章节，确认 HSI 是否支持 USB SOF 自动校准，或是否需外加 8MHz/12MHz HSE 晶振才能稳定工作。
+> ✅ **【已核实 #2 — USB 时钟方案】** 查阅 WCH 官方论坛确认：CH32V203 **不支持 USB SOF 自动校准**，HSI 标称精度 ±2.2% 无法满足 USB FS ±0.25% 要求。USB ISP 是本项目的**主力烧录方式**（唯一无需调试器的烧录通道），USB 通信必须可靠。**已决定外加 8MHz HSE 晶振（Y2, JLYE C49158084, ¥0.12）**，系统时钟路径：HSE 8MHz → PLL ×18 → 144MHz SYSCLK → USB 48MHz 专用 PLL，确保 USB 时钟精度满足规范。
 
 ---
 
@@ -292,18 +297,36 @@ BOOT0 ──┬── KEY_BOOT ── +3V3    ← 按下 = 高电平 = ISP 模�
 
 ### 6.4 USB ESD 保护
 
+**USBLC6-2SC6 引脚定义（SOT-23-6 顶视图）：**
+```
+         ┌──────────┐
+  I/O1 ──┤ 1      6 ├── I/O1     （Pin1 与 Pin6 内部直连）
+   GND ──┤ 2      5 ├── VBUS     （Pin3 与 Pin4 内部直连）
+  I/O2 ──┤ 3      4 ├── I/O2
+         └──────────┘
+```
+
+**USB-C 端 ESD 保护（U5）— D+/D- 信号穿过 ESD 芯片再到 MCU：**
+
 | 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
 |---------------|-----------------|------|-----------|
-| USB-C.D+ (A6/B6) | U5.Pin1 | USB_DP | USBLC6-2SC6 通道 1（保护 PA12/MCU） |
-| USB-C.D- (A7/B7) | U5.Pin2 | USB_DM | USBLC6-2SC6 通道 2（保护 PA11/MCU） |
-| U5.GND (Pin 3) | GND | GND | ESD 泄放 |
-| USB-A.D+ (Pin 3) | U6.Pin1 | USB_A_DP | USBLC6-2SC6 通道 1 |
-| USB-A.D- (Pin 2) | U6.Pin2 | USB_A_DN | USBLC6-2SC6 通道 2 |
-| U6.GND (Pin 3) | GND | GND | ESD 泄放 |
+| USB-C.D+ (A6/B6) | U5.Pin1 (I/O1 入口) | USB_DP_ESD_IN | D+ 信号进入 ESD |
+| U5.Pin6 (I/O1 出口) | CH32V203.PA12 (Pin 33) | USB_DP | D+ 经过 ESD 后到 MCU |
+| USB-C.D- (A7/B7) | U5.Pin3 (I/O2 入口) | USB_DM_ESD_IN | D- 信号进入 ESD |
+| U5.Pin4 (I/O2 出口) | CH32V203.PA11 (Pin 32) | USB_DM | D- 经过 ESD 后到 MCU |
+| U5.Pin2 | GND | GND | ESD 泄放地 |
+| U5.Pin5 | VBUS | VBUS | VBUS 电源轨保护 |
 
-> USB-A D+/D- 在本设计中 NC，但 ESD 保护保留以防外部 ESD 从 USB-A 口引入。
+**USB-A 端 ESD 保护（U6）— 信号未连 MCU 但保留 ESD 防护：**
 
-> ⚠️ **【待核实 #3 — USBLC6-2SC6 连接不完整】** USBLC6-2SC6 是串联型 ESD 保护器件——信号从一侧端口进入，经内部 ESD 后从另一侧端口出来到 MCU。当前连接表只写了 USB-C 进来的信号到 U5 的 Pin1/Pin2，**缺少 U5 信号流出端（Pin4/Pin6）到 MCU PA11/PA12 的连接**。同时 U5 Pin 编号（Pin1/Pin2/Pin3）也可能与 datasheet 不符——典型的 SOT-23-6 封装 USBLC6-2SC6 引脚定义为：Pin1=I/O1_A, Pin2=GND, Pin3=I/O2_A, Pin4=I/O2_B, Pin5=VBUS, Pin6=I/O1_B。按当前连接表画原理图会导致 USB D+/D- 信号在 ESD 芯片处断开，MCU 收不到 USB 信号。**必须对照 USBLC6-2SC6 datasheet 确认引脚定义，并补全信号流出到 MCU 的连接。**
+| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
+|---------------|-----------------|------|-----------|
+| USB-A.D+ (Pin 3) | U6.Pin1 | USB_A_DP | ESD 入口，出口 Pin6 NC |
+| USB-A.D- (Pin 2) | U6.Pin3 | USB_A_DN | ESD 入口，出口 Pin4 NC |
+| U6.Pin2 | GND | GND | ESD 泄放地 |
+| U6.Pin5 | — | NC | 悬空（USB-A 端不保护 VBUS） |
+
+> ✅ **【已修正 #3 — USBLC6-2SC6 连接】** 已对照 ST DS4260 Rev 7 datasheet 确认引脚定义。旧连接表将 D- 错误接入了 Pin2（GND），且缺少出口端到 MCU 的连接——按旧表画原理图会导致 D- 对地短路、MCU 收不到任何 USB 信号。现已补全完整的信号穿通路径。
 
 ### 6.5 三路协同总结
 
@@ -335,6 +358,7 @@ BOOT0 ──┬── KEY_BOOT ── +3V3    ← 按下 = 高电平 = ISP 模�
 | U4 | INA226AIDGSR | VSSOP-10 | 1 | C49851 |
 | U5, U6 | USBLC6-2SC6 | SOT-23-6 | 2 | — |
 | Y1 | TKD SF32WK32768D31T002 | SMD3215-2P | 1 | C271654 |
+| Y2 | JLYE Y32258MCBCX | SMD3225-4P | 1 | C49158084 |
 | OLED1 | 0.96" SSD1315 I²C | 模块 | 1 | — |
 | SW1,SW2,SW3 | TS-1102S-C | SMD 4p | 3 | — |
 | R_SHUNT | 10mΩ ±1% 合金 | 0805 | 1 | — |
@@ -344,8 +368,8 @@ BOOT0 ──┬── KEY_BOOT ── +3V3    ← 按下 = 高电平 = ISP 模�
 | USB-C | TYPE-C 16P 卧贴 | 16P SMD | 1 | — |
 | USB-A | USB-A 4P 卧贴 | 4P SMD | 1 | — |
 | C1, C3, C5, C13 | MLCC 10µF | 0805 | 4 | — |
-| C2, C4, C6, C9~C12, C14, C16, C_NRST | MLCC 100nF | 0603 | 11 | — |
-| C7, C8 | MLCC 12pF NPO | 0603 | 2 | — |
+| C2, C4, C6, C9~C12, C14, C16, C_NRST | MLCC 100nF | 0603 | 10 | — |
+| C7, C8, C17, C18 | MLCC 12pF NPO | 0603 | 4 | — |
 | C15 | MLCC 0.1µF | 0603 | 1 | — |
 | R_PU_MODE/R_CONFIRM | 10kΩ | 0603 | 2 | — |
 | R_BOOT, R_PU_NRST | 10kΩ | 0603 | 2 | — |
@@ -354,9 +378,9 @@ BOOT0 ──┬── KEY_BOOT ── +3V3    ← 按下 = 高电平 = ISP 模�
 | R_VBUS_FILTER | 100Ω | 0603 | 1 | — |
 | L1 | 磁珠/电感 10µH | 0805 | 1 | — |
 
-> ⚠️ **【待核实 #4 — BOM 计数与信号不匹配】** 两处小问题：
-> - 100nF 电容列为 11 颗，逐一列举：C2, C4, C6, C9, C10, C11, C12, C14, C16, C_NRST = 10 颗。请核实是否遗漏了第 11 颗或数字多写了一个。
-> - Module 1 连接表中 `UART_Pin4 → +3V3`，但 J2 是 **3P 排针**（TX/RX/GND），不存在 Pin4。实际如需对外提供 3.3V，需改用 4P 排针或在 BOM 中修正 J2 描述。
+> ✅ **【已修正 #4 — BOM 计数与信号不匹配】** 两处已修正：
+> - 100nF 电容总数已修正为 10 颗（C2, C4, C6, C9~C12, C14, C16, C_NRST）
+> - J2 为 **3P 排针**（TX/RX/GND），Module 1 中已移除不存在的 Pin4 连接
 
 ---
 

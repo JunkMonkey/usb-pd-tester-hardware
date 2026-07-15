@@ -10,48 +10,61 @@
 
 ### 1.1 MCU 引脚分配
 
-| GPIO | 功能 | 方向 | 信号 | 连接目标 | 备注 |
-|------|------|------|------|----------|------|
-| PA0 | GPIO 输入 | IN | KEY_MODE | 模式按键 (TS-1102S-C) | 外接 10kΩ 上拉，按键对 GND |
-| PA1 | GPIO 输入 | IN | KEY_CONFIRM | 确认按键 (TS-1102S-C) | 外接 10kΩ 上拉，按键对 GND |
-| PA2 | GPIO 输出 | OUT | CFG1 | CH224K CFG1 | PD 电压档位选择线 1 |
-| PA3 | GPIO 输出 | OUT | CFG2 | CH224K CFG2 | PD 电压档位选择线 2 |
-| PA4 | GPIO 输出 | OUT | CFG3 | CH224K CFG3 | PD 电压档位选择线 3 |
-| PA5 | SPI1_SCK | — | — | 预留测试点 | 可选，当前设计未使用 |
-| PA6 | SPI1_MISO | — | — | 预留测试点 | 可选 |
-| PA7 | SPI1_MOSI | — | — | 预留测试点 | 可选 |
-| PA8 | — | — | — | 预留 | — |
-| PA9 | USART1_TX | OUT | UART_TX | ISP 排针 Pin1 | 烧录 / 串口输出 |
-| PA10 | USART1_RX | IN | UART_RX | ISP 排针 Pin2 | 烧录 / 串口输入 |
-| PA11 | USB_DM | I/O | USB_D- | USB-C D- (A7/B7) | USB ISP 烧录 |
-| PA12 | USB_DP | I/O | USB_D+ | USB-C D+ (A6/B6) | USB ISP 烧录 |
-| PA13 | SWDIO | I/O | SWD_DAT | SWD 排针 Pin2 | 调试接口 |
-| PA14 | SWCLK | IN | SWD_CLK | SWD 排针 Pin1 | 调试接口 |
-| PA15 | — | — | — | 预留 | — |
-| PB0 | — | — | — | 预留 | — |
-| PB1 | — | — | — | 预留 | — |
-| PB3 | — | — | — | 预留 | — |
-| PB4 | — | — | — | 预留 | — |
-| PB5 | — | — | — | 预留 | — |
-| PB6 | I2C1_SCL | I/O | I2C_SCL | INA226 SCL + OLED SCL | 同一条 I²C 总线 |
-| PB7 | I2C1_SDA | I/O | I2C_SDA | INA226 SDA + OLED SDA | 同一条 I²C 总线 |
-| PB8 | — | — | — | 预留 | — |
-| PB10 | — | — | — | 预留 | — |
-| PB11 | — | — | — | 预留 | — |
-| PB12 | — | — | — | 预留 | — |
-| PB13 | — | — | — | 预留 | — |
-| PB14 | — | — | — | 预留 | — |
-| PB15 | — | — | — | 预留 | — |
-| PC13 | — | — | — | 预留 | — |
-| PC14 | OSC32_IN | IN | 32.768kHz | 晶振 TKD SF32WK32768D31T002 | RTC 时钟 |
-| PC15 | OSC32_OUT | OUT | 32.768kHz | 晶振 TKD SF32WK32768D31T002 | RTC 时钟 |
+| GPIO | Pin | 功能 | 方向 | 信号 | 连接目标 | 备注 |
+|------|-----|------|------|------|----------|------|
+| — (OSC_IN) | **5** | HSE 晶振 | IN | 8MHz | Y2 HSE 晶振 Pin1 | 可重映射为 PD0（不用 HSE 时），本项目用于 8MHz HSE |
+| — (OSC_OUT) | **6** | HSE 晶振 | OUT | 8MHz | Y2 HSE 晶振 Pin2 | 可重映射为 PD1（不用 HSE 时），本项目用于 8MHz HSE |
+| PA0 | **10** | GPIO 输入 | IN | KEY_MODE | 模式按键 (TS-1102S-C) | 外接 10kΩ 上拉，按键对 GND |
+| PA1 | **11** | GPIO 输入 | IN | KEY_CONFIRM | 确认按键 (TS-1102S-C) | 外接 10kΩ 上拉，按键对 GND |
+| PA2 | **12** | GPIO 输出 | OUT | CFG1 | CH224K CFG1 | PD 电压档位选择线 1 |
+| PA3 | **13** | GPIO 输出 | OUT | CFG2 | CH224K CFG2 | PD 电压档位选择线 2 |
+| PA4 | **14** | GPIO 输出 | OUT | CFG3 | CH224K CFG3 | PD 电压档位选择线 3 |
+| PA5 | **15** | SPI1_SCK | — | — | 预留测试点 | 可选，当前设计未使用 |
+| PA6 | **16** | SPI1_MISO | — | — | 预留测试点 | 可选 |
+| PA7 | **17** | SPI1_MOSI | — | — | 预留测试点 | 可选 |
+| PA8 | **29** | — | — | — | 预留 | — |
+| PA9 | **30** | USART1_TX | OUT | UART_TX | ISP 排针 Pin1 | 烧录 / 串口输出 |
+| PA10 | **31** | USART1_RX | IN | UART_RX | ISP 排针 Pin2 | 烧录 / 串口输入 |
+| PA11 | **32** | USB_DM | I/O | USB_D- | USB-C D- (A7/B7) | USB ISP 烧录 |
+| PA12 | **33** | USB_DP | I/O | USB_D+ | USB-C D+ (A6/B6) | USB ISP 烧录 |
+| PA13 | **34** | SWDIO | I/O | SWD_DAT | SWD 排针 Pin2 | 调试接口 |
+| PA14 | **37** | SWCLK | IN | SWD_CLK | SWD 排针 Pin1 | 调试接口 |
+| PA15 | **38** | — | — | — | 预留 | — |
+| PB0 | **18** | — | — | — | 预留 | — |
+| PB1 | **19** | — | — | — | 预留 | — |
+| PB2 | **20** | — | — | — | 预留（BOOT1，内部下拉） | — |
+| PB3 | **39** | — | — | — | 预留 | — |
+| PB4 | **40** | — | — | — | 预留 | — |
+| PB5 | **41** | — | — | — | 预留 | — |
+| PB6 | **42** | I2C1_SCL | I/O | I2C_SCL | INA226 SCL + OLED SCL | 同一条 I²C 总线 |
+| PB7 | **43** | I2C1_SDA | I/O | I2C_SDA | INA226 SDA + OLED SDA | 同一条 I²C 总线 |
+| PB8 | **45** | — | — | — | 预留 | — |
+| PB9 | **46** | — | — | — | 预留 | — |
+| PB10 | **21** | — | — | — | 预留 | — |
+| PB11 | **22** | — | — | — | 预留 | — |
+| PB12 | **25** | — | — | — | 预留 | — |
+| PB13 | **26** | — | — | — | 预留 | — |
+| PB14 | **27** | — | — | — | 预留 | — |
+| PB15 | **28** | — | — | — | 预留 | — |
+| PC13 | **2** | — | — | — | 预留 | — |
+| PC14 | **3** | OSC32_IN | IN | 32.768kHz | 晶振 TKD SF32WK32768D31T002 | RTC 时钟 |
+| PC15 | **4** | OSC32_OUT | OUT | 32.768kHz | 晶振 TKD SF32WK32768D31T002 | RTC 时钟 |
 
-> ⚠️ **【待核实 — 引脚编号】** 以上 PA0~PA4 及 VDDA/VSSA 的 Pin 号需要对照 CH32V203C8T6 官方 datasheet LQFP-48 封装引脚图逐脚核实。若 CH32V203 与 STM32F103 引脚兼容，则 PA0 应为 Pin10（非 Pin14），PA1=Pin11（非 Pin15），PA2=Pin12（非 Pin16），PA3=Pin13（非 Pin17），PA4=Pin14（非 Pin20），VSSA=Pin8（非 Pin12），VDDA=Pin9（非 Pin13）。请确认。
+> ✅ **【已核实 — 引脚编号】** 已对照 CH32V203 数据手册 V2.8 表 3-1-1（第 17-20 页）逐脚核实。CH32V203C8T6 与 STM32F103C8T6 LQFP-48 **引脚兼容**，PA0=Pin10, PA1=Pin11, PA2=Pin12, PA3=Pin13, PA4=Pin14, VSSA=Pin8, VDDA=Pin9, NRST=Pin7。⚠️ 与 STM32F103 的关键区别：CH32V203 的 Pin 5=OSC_IN (可重映射为 PD0), Pin 6=OSC_OUT (可重映射为 PD1)，复位后默认为 HSE 晶振功能。需要 HSE 晶振时使用这两个引脚。
 
-| BOOT0 | ISP 选择 | IN | BOOT0 | KEY_BOOT + 10kΩ 下拉 | 高电平 = ISP 模式 |
-| NRST | 复位 | IN | RST | 10kΩ 上拉 + 100nF 对 GND | 外部复位 |
-| VDD (×4) | 电源 | — | +3.3V | 3.3V 电源轨 | 各引脚 100nF 去耦 |
-| VDDA | 模拟电源 | — | +3.3V | 3.3V 经 LC 滤波 | 10µF + 100nF 去耦 |
+| 系统引脚 | Pin | 功能 | 方向 | 信号 | 连接目标 | 备注 |
+|----------|-----|------|------|------|----------|------|
+| BOOT0 | **44** | ISP 选择 | IN | BOOT0 | KEY_BOOT + 10kΩ 下拉 | 高电平 = ISP 模式 |
+| NRST | **7** | 复位 | IN | RST | 10kΩ 上拉 + 100nF 对 GND | 外部复位 |
+| VBAT | **1** | 备份电源 | — | +3.3V | 3.3V 电源轨 | RTC 备份域供电 |
+| VDD_IO_1 | **24** | 数字电源 | — | +3.3V | 3.3V 电源轨 | 100nF 去耦 |
+| VSS_1 | **23** | 数字地 | — | GND | GND | — |
+| VDD_2 | **36** | 数字电源 | — | +3.3V | 3.3V 电源轨 | 100nF 去耦 |
+| VSS_2 | **35** | 数字地 | — | GND | GND | — |
+| VDD_IO_3 | **48** | 数字电源 | — | +3.3V | 3.3V 电源轨 | 100nF 去耦 |
+| VSS_3 | **47** | 数字地 | — | GND | GND | — |
+| VDDA | **9** | 模拟电源 | — | +3.3V | 3.3V 经 LC 滤波 | 10µF + 100nF 去耦 |
+| VSSA | **8** | 模拟地 | — | GND | GND | — |
 
 ### 1.2 I²C 总线设备地址
 
@@ -115,8 +128,6 @@
 ```
 VBUS (5V~20V)
   │
-│   PC0     │
-  │
   ├──→ CC1 经 5.1kΩ ──→ GND  （USB-C Sink 识别，使电脑输出 VBUS）
   ├──→ CC2 经 5.1kΩ ──→ GND  （USB-C Sink 识别）
   ├──→ CH224K VBUS ──→ USB-A 母座 VBUS （负载功率路径，不经 LDO）
@@ -126,11 +137,12 @@ VBUS (5V~20V)
   │         ├── 输入滤波：10µF MLCC + 100nF MLCC（靠近 LDO IN 脚）
   │         └── 输出滤波：10µF MLCC + 100nF MLCC（靠近 LDO OUT 脚）
   │
-  +3.3V ──┬──→ CH32V203 VDD ×4 + VDDA（经 LC：10µH + 10µF + 100nF）
+  +3.3V ──┬──→ CH32V203 VDD_IO_1(Pin24) + VDD_2(Pin36) + VDD_IO_3(Pin48)
+          ├──→ CH32V203 VBAT(Pin1)（RTC 备份供电）
+          ├──→ CH32V203 VDDA(Pin9)（经 LC：10µH + 10µF//100nF）
           ├──→ INA226 VS (2.7~5.5V)
           ├──→ OLED VCC
           ├──→ SWD 排针 Pin4
-          ├──→ UART 排针 Pin4
           └──→ 按键上拉电阻 (10kΩ ×3)
 ```
 
@@ -220,7 +232,8 @@ T_junction = T_ambient + P_LDO × θJA
 | I²C (SCL/SDA) | 8mil | 10mil | — | <60mm | 挂 2 设备，速率 ≤400kHz |
 | SWD (SWCLK/SWDIO) | 8mil | 10mil | — | <50mm | 与 UART 排针相邻 |
 | UART (PA9/PA10) | 8mil | 10mil | — | <50mm | 普通数字信号 |
-| 晶振 OSC32 | 6mil | 15mil | — | <10mm | 靠近 MCU PC14/PC15，周边铺 GND 护环 |
+| 晶振 OSC32 (Y1) | 6mil | 15mil | — | <10mm | 靠近 MCU PC14/PC15，周边铺 GND 护环 |
+| 晶振 HSE (Y2) | 6mil | 15mil | — | <10mm | 靠近 MCU OSC_IN/OSC_OUT(Pin5/Pin6)，周边铺 GND 护环，远离功率走线 |
 
 ### 3.4 模拟前端约束
 
@@ -233,8 +246,11 @@ T_junction = T_ambient + P_LDO × θJA
 
 | 器件 | 电容 | 布局要求 |
 |------|------|----------|
-| CH32V203 每对 VDD/VSS | 100nF MLCC 0603 | 紧贴引脚，<3mm |
+| CH32V203 VDD_IO_1/VDD_2/VDD_IO_3 | 100nF MLCC 0603 | 紧贴引脚，<3mm |
 | CH32V203 VDDA/VSSA | 10µF + 100nF | 经 LC 滤波：L=10µH + C=10µF//100nF |
+| CH32V203 NRST | 100nF | 对 GND，靠近 Pin 7 |
+| CH32V203 OSC32_IN/OUT (Y1) | 12pF ×2 C0G/NP0 | 紧贴晶振，围 GND 护环 |
+| CH32V203 OSC_IN/OUT (Y2 HSE) | 12pF ×2 C0G/NP0 | 紧贴晶振，围 GND 护环，远离高速数字信号 |
 | HT7533S IN | 10µF + 100nF | 紧贴 IN 引脚 |
 | HT7533S OUT | 10µF + 100nF | 紧贴 OUT 引脚 |
 | INA226 VS | 100nF | 紧贴 VS 引脚 |

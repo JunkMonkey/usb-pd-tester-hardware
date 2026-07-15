@@ -333,30 +333,33 @@ USART_Cmd(USART1, ENABLE);
 
 ```
 CH32V203C8T6 LQFP-48 功能引脚
+(来源: CH32V203 数据手册 V2.8, 表 3-1-1)
 
          ┌─────────────────────┐
-  VBAT  1┤○                 48┤ VDD_4
-  PC13  2┤                   47┤ VSS_4
-  PC14  3┤ OSC32_IN          46┤ PA13 (SWDIO)
-  PC15  4┤ OSC32_OUT         45┤ PA12 (USB_DP → USB ISP)
-  NRST  5┤                   44┤ PA11 (USB_DM → USB ISP)
-  VSSA  6┤                   43┤ PA10 (UART_RX → Debug)
-  VDDA  7┤                   42┤ PA9  (UART_TX → Debug)
-  VDD_1 8┤                   41┤ PA8
-  VSS_1 9┤                   40┤ PB15
-  PA0  10┤ KEY_MODE          39┤ PB14
-  PA1  11┤ KEY_CONFIRM       38┤ PB13
-  PA2  12┤ CFG1 → CH224K     37┤ PB12
-  PA3  13┤ CFG2 → CH224K     36┤ VDD_3
-  PA4  14┤ CFG3 → CH224K     35┤ VSS_3
-  PA5  15┤                   34┤ PB11
-  PA6  16┤                   33┤ PB10
-  PA7  17┤                   32┤ PB8
-  PB0  18┤                   31┤ PB7 (I2C_SDA)
-  PB1  19┤                   30┤ PB6 (I2C_SCL)
-  PB2  20┤ BOOT0             29┤ PB5
-  VSS_2 21┤                   28┤ PB4
-  VDD_2 22┤                   27┤ PB3
+  VBAT  1┤○                 48┤ VDD_IO_3
+  PC13  2┤                   47┤ VSS_3
+  PC14  3┤ OSC32_IN          46┤ PB9
+  PC15  4┤ OSC32_OUT         45┤ PB8
+  OSC_IN5┤ (HSE, 可重映射PD0) 44┤ BOOT0
+  OSC_OUT6┤(HSE, 可重映射PD1) 43┤ PB7 (I2C1_SDA)
+  NRST  7┤                   42┤ PB6 (I2C1_SCL)
+  VSSA  8┤                   41┤ PB5
+  VDDA  9┤                   40┤ PB4
+  PA0  10┤ KEY_MODE          39┤ PB3
+  PA1  11┤ KEY_CONFIRM       38┤ PA15
+  PA2  12┤ CFG1 → CH224K     37┤ PA14 (SWCLK)
+  PA3  13┤ CFG2 → CH224K     36┤ VDD_2
+  PA4  14┤ CFG3 → CH224K     35┤ VSS_2
+  PA5  15┤                   34┤ PA13 (SWDIO)
+  PA6  16┤                   33┤ PA12 (USB_DP → USB ISP)
+  PA7  17┤                   32┤ PA11 (USB_DM → USB ISP)
+  PB0  18┤                   31┤ PA10 (UART_RX → Debug)
+  PB1  19┤                   30┤ PA9  (UART_TX → Debug)
+  PB2  20┤ (BOOT1, 内部下拉)   29┤ PA8
+  PB10 21┤                   28┤ PB15
+  PB11 22┤                   27┤ PB14
+  VSS_1 23┤                   26┤ PB13
+  VDD_IO_1 24┤               25┤ PB12
          └─────────────────────┘
 ```
 
