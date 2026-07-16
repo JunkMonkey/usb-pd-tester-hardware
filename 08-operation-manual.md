@@ -338,10 +338,10 @@ CH32V203C8T6 LQFP-48 功能引脚
          ┌─────────────────────┐
   VBAT  1┤○                 48┤ VDD_IO_3
   PC13  2┤                   47┤ VSS_3
-  PC14  3┤ OSC32_IN          46┤ PB9
-  PC15  4┤ OSC32_OUT         45┤ PB8
-  OSC_IN5┤ (HSE, 可重映射PD0) 44┤ BOOT0
-  OSC_OUT6┤(HSE, 可重映射PD1) 43┤ PB7 (I2C1_SDA)
+  PC14  3┤ (预留 GPIO)      46┤ PB9
+  PC15  4┤ (预留 GPIO)      45┤ PB8
+  OSC_IN5┤ (8MHz HSE→Y2)    44┤ BOOT0
+  OSC_OUT6┤(8MHz HSE→Y2)    43┤ PB7 (I2C1_SDA)
   NRST  7┤                   42┤ PB6 (I2C1_SCL)
   VSSA  8┤                   41┤ PB5
   VDDA  9┤                   40┤ PB4

@@ -1,405 +1,420 @@
-# 07 — 模块原理图（结构化连接表）
+# 07 — 模块原理图（立创 EDA 专业版 绘制指南）
 
 **项目：** USB PD 多功能测试仪
-**日期：** 2026-07-13
-**格式：** 结构化连接表（可直接交付原理图设计师绘制）
-**EDA 工具：** 立创 EDA 专业版
-
-> **回退说明：** 当前环境无立创 EDA MCP Server，已自动回退到结构化连接表格式。所有网络名、器件型号、引脚编号和参数值均经过 cross-check，可直接交给硬件工程师在立创 EDA 中绘制。
+**日期：** 2026-07-15
+**格式：** 立创 EDA 专业版 操作手册（逐步放置 → 连线 → 检查）
+**配套文件：** `usb-pd-tester-schematic.json`（实验性导入文件，如立创 EDA 无法直接打开，请使用本指南手工绘制）
 
 ---
 
-## 模块总览
+## 绘制前准备
+
+1. 打开**立创 EDA 专业版**
+2. 新建工程：`USB-PD-Tester`
+3. 新建原理图页，命名为 `Main`
+4. 页面尺寸设为 A4 横版（297×210mm）
+
+---
+
+## 第一步：放置核心 IC（按 LCSC 编号搜索，一键放置）
+
+在立创 EDA 专业版的器件搜索框中输入**立创商城编号**，直接放置。立创 EDA 会自动加载对应的**原理图符号 + PCB 封装**。
+
+| 顺序 | 位号 | 立创商城编号 | 型号 | 封装 | 放置位置(大致) |
+|------|------|-------------|------|------|---------------|
+| 1 | **U2** | `C3001172` | CH32V203C8T6 | LQFP-48 | 页面中央偏右 |
+| 2 | **U3** | `C970725` | CH224K | ESSOP-10 | 页面中央偏上 |
+| 3 | **U4** | `C49851` | INA226AIDGSR | VSSOP-10 | 页面中央偏下 |
+| 4 | **U1** | `C347215` | HT7533S | SOT-23-3 | 左下角 |
+| 5 | **U5** | 搜 `USBLC6-2SC6` | USBLC6-2SC6 | SOT-23-6 | USB-C 右侧 |
+| 6 | **U6** | 搜 `USBLC6-2SC6` | USBLC6-2SC6 | SOT-23-6 | USB-A 左侧 |
+
+> **提示：** 立创 EDA 器件搜索支持立创商城编号直接跳转，输入 `C3001172` 回车即可看到 CH32V203C8T6，双击放置。
+
+### USBLC6-2SC6 引脚注意事项
 
 ```
-Module 1: 电源模块          VBUS → LDO → +3.3V 系统供电
-Module 2: MCU 最小系统       CH32V203 + 晶振 + 复位 + 去耦
-Module 3: PD 触发模块        CH224K + CFG1/2/3 档位选择
-Module 4: 电流检测模块       INA226 + 10mΩ 分流 + Kelvin 走线
-Module 5: 显示与交互         OLED I²C + 3 按键
-Module 6: 调试与烧录         SWD + USART1 ISP + ESD 保护
+        ┌──────────┐
+ I/O1 ──┤ 1      6 ├── I/O1    (Pin1 与 Pin6 内部直连——信号穿通)
+  GND ──┤ 2      5 ├── VBUS    (Pin5 = VBUS 电源轨保护)
+ I/O2 ──┤ 3      4 ├── I/O2    (Pin3 与 Pin4 内部直连——信号穿通)
+        └──────────┘
 ```
 
----
+**U5 (USB-C 端):** D+ 进 Pin1 → 出 Pin6 → MCU；D- 进 Pin3 → 出 Pin4 → MCU；Pin2=GND；Pin5=VBUS
 
-## Module 1: 电源模块
-
-### 网络定义
-
-| 网络名 | 电压 | 来源 | 负载 |
-|--------|------|------|------|
-| VBUS | 5V ~ 20V | USB-C 母座 | CH224K, INA226 Vbus, HT7533S IN, USB-A 输出 |
-| +3V3 | 3.3V ±2% | HT7533S OUT | MCU, INA226 VS, OLED, 按键上拉, 排针 |
-| GND | 0V | USB-C GND | 所有器件参考地 |
-
-### 连接表
-
-| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
-|---------------|-----------------|------|-----------|
-| USB-C.A4/A9/B4/B9 | HT7533S.IN | VBUS | 经 10µF//100nF 至 GND |
-| USB-C.A4/A9/B4/B9 | CH224K.VBUS | VBUS | — |
-| USB-C.A4/A9/B4/B9 | INA226.VBUS (经分流后) | VBUS | 分流前/后取决于拓扑 |
-| USB-C.A1/A12/B1/B12 | GND | GND | 系统参考地 |
-| HT7533S.OUT | +3V3 | +3V3 | 经 10µF//100nF 至 GND |
-| HT7533S.GND | GND | GND | — |
-| +3V3 | CH32V203.VDD (×4) | +3V3 | 经 100nF 去耦各引脚 |
-| +3V3 | CH32V203.VDDA | +3V3_ANA | 经 LC 滤波 (10µH + 10µF//100nF) |
-| +3V3 | INA226.VS | +3V3 | 经 100nF 至 GND |
-| +3V3 | OLED.VCC | +3V3 | — |
-| +3V3 | SWD_Pin4 | +3V3 | 排针输出，仅供电参考 |
-| +3V3 | J2 UART_Pin3 (GND) 不接 VCC | — | UART 排针为 3P (TX/RX/GND)，不对外供电 |
-| +3V3 | R_PU_MODE (10kΩ) | +3V3 | KEY_MODE 上拉 |
-| +3V3 | R_PU_CONFIRM (10kΩ) | +3V3 | KEY_CONFIRM 上拉 |
-
-### 关键器件参数
-
-| 器件位号 | 型号 | 封装 | 参数 | 立创编号 |
-|----------|------|------|------|----------|
-| U1 | HT7533S (UMW) | SOT-23-3 | 3.3V / 100mA / 30V | C347215 |
-| C1 | MLCC 10µF | 0805 | 50V X7R | — |
-| C2 | MLCC 100nF | 0603 | 50V X7R | — |
-| C3 | MLCC 10µF | 0805 | 16V X7R | — |
-| C4 | MLCC 100nF | 0603 | 16V X7R | — |
-| L1 | 10µH 磁珠/电感 | 0805 | 600Ω @ 100MHz | — |
-| C5 | MLCC 10µF | 0805 | 16V X7R | VDDA 滤波 |
-| C6 | MLCC 100nF | 0603 | 16V X7R | VDDA 滤波 |
+**U6 (USB-A 端):** D+ 进 Pin1 → Pin6 悬空；D- 进 Pin3 → Pin4 悬空；Pin2=GND；Pin5 悬空
 
 ---
 
-## Module 2: MCU 最小系统
+## 第二步：放置连接器
 
-### 连接表
-
-| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
-|---------------|-----------------|------|-----------|
-| CH32V203.VBAT (Pin 1) | +3V3 | +3V3 | RTC 备份域供电 |
-| CH32V203.VDD_IO_1 (Pin 24) | +3V3 | +3V3 | C100nF → GND |
-| CH32V203.VSS_1 (Pin 23) | GND | GND | — |
-| CH32V203.VDD_2 (Pin 36) | +3V3 | +3V3 | C100nF → GND |
-| CH32V203.VSS_2 (Pin 35) | GND | GND | — |
-| CH32V203.VDD_IO_3 (Pin 48) | +3V3 | +3V3 | C100nF → GND |
-| CH32V203.VSS_3 (Pin 47) | GND | GND | — |
-| CH32V203.VDDA (Pin 9) | +3V3_ANA | +3V3_ANA | 经 L1 + C5//C6 |
-| CH32V203.VSSA (Pin 8) | GND | GND | — |
-| CH32V203.NRST (Pin 7) | RST | RST | 10kΩ 上拉至 +3V3 + 100nF 对 GND |
-| CH32V203.OSC_IN (Pin 5) | Y2.Pin1 | OSC_IN | 8MHz HSE 晶振输入 |
-| CH32V203.OSC_OUT (Pin 6) | Y2.Pin2 | OSC_OUT | 8MHz HSE 晶振输出 |
-| Y2.Pin1 | C17 → GND | OSC_IN | 负载电容 12pF C0G/NP0 |
-| Y2.Pin2 | C18 → GND | OSC_OUT | 负载电容 12pF C0G/NP0 |
-| CH32V203.PC14 (Pin 3) | Y1.Pin1 | OSC32_IN | 晶振 TKD SF32WK32768D31T002 |
-| CH32V203.PC15 (Pin 4) | Y1.Pin2 | OSC32_OUT | 晶振 TKD SF32WK32768D31T002 |
-| Y1.Pin1 | C7 → GND | OSC32_IN | 负载电容 12pF C0G/NP0 |
-| Y1.Pin2 | C8 → GND | OSC32_OUT | 负载电容 12pF C0G/NP0 |
-| CH32V203.BOOT0 (Pin 44) | KEY_BOOT / R_BOOT | BOOT0 | 见 Module 5 |
-| CH32V203.PA13 (Pin 34) | SWD_Pin2 | SWDIO | 见 Module 6 |
-| CH32V203.PA14 (Pin 37) | SWD_Pin1 | SWCLK | 见 Module 6 |
-| CH32V203.PA9 (Pin 30) | UART_Pin1 | UART_TX | 见 Module 6 |
-| CH32V203.PA10 (Pin 31) | UART_Pin2 | UART_RX | 见 Module 6 |
-| CH32V203.PB6 (Pin 42) | INA226.SCL + OLED.SCL | I2C_SCL | 4.7kΩ 上拉至 +3V3 |
-| CH32V203.PB7 (Pin 43) | INA226.SDA + OLED.SDA | I2C_SDA | 4.7kΩ 上拉至 +3V3 |
-| CH32V203.PA0 (Pin 10) | KEY_MODE | KEY_MODE | 10kΩ 上拉 + 按键对 GND |
-| CH32V203.PA1 (Pin 11) | KEY_CONFIRM | KEY_CONFIRM | 10kΩ 上拉 + 按键对 GND |
-| CH32V203.PA2 (Pin 12) | CH224K.CFG1 | CFG1 | PD 档位选择 |
-| CH32V203.PA3 (Pin 13) | CH224K.CFG2 | CFG2 | PD 档位选择 |
-| CH32V203.PA4 (Pin 14) | CH224K.CFG3 | CFG3 | PD 档位选择 |
-| CH32V203.PA11 (Pin 32) | USB-C.D- (A7/B7) | USB_DM | USB ISP 烧录数据线 |
-| CH32V203.PA12 (Pin 33) | USB-C.D+ (A6/B6) | USB_DP | USB ISP 烧录数据线 |
-
-### 关键器件参数
-
-| 器件位号 | 型号 | 封装 | 参数 | 立创编号 |
-|----------|------|------|------|----------|
-| U2 | CH32V203C8T6 | LQFP-48 | RISC-V 144MHz 64K/20K | C3001172 |
-| Y1 | TKD SF32WK32768D31T002 | SMD3215-2P | 32.768kHz, 12.5pF, ±20ppm, ESR≤70kΩ | C271654 |
-| Y2 | JLYE Y32258MCBCX | SMD3225-4P | 8MHz, 8pF, ±10ppm, ±20ppm | C49158084 |
-| C7, C8 | MLCC 12pF | 0603 | NPO/COG | 32.768kHz 负载电容 |
-| C17, C18 | MLCC 12pF | 0603 | NPO/COG | 8MHz HSE 负载电容（EVT 可微调至 15pF） |
-| C9~C12 | MLCC 100nF | 0603 | 16V X7R | MCU VDD_IO_1/2/3 + VDD_2 去耦 ×4 |
-| R_PU_NRST | 10kΩ | 0603 | — | 复位上拉 |
-| C_NRST | 100nF | 0603 | 16V X7R | 复位滤波 |
-| R_PU_I2C | 4.7kΩ ×2 | 0603 | — | I²C SCL/SDA 上拉 |
-
-> ✅ **【已核实 #1 — 引脚编号】** 已对照 CH32V203 数据手册 V2.8 表 3-1-1 逐脚核实。CH32V203C8T6 与 STM32F103C8T6 LQFP-48 **引脚兼容**，PA0=Pin10, PA1=Pin11, PA2=Pin12, PA3=Pin13, PA4=Pin14, VDDA=Pin9, VSSA=Pin8, NRST=Pin7。上方连接表已全部使用正确引脚编号。
-
-> ✅ **【已核实 #2 — USB 时钟方案】** 查阅 WCH 官方论坛确认：CH32V203 **不支持 USB SOF 自动校准**，HSI 标称精度 ±2.2% 无法满足 USB FS ±0.25% 要求。USB ISP 是本项目的**主力烧录方式**（唯一无需调试器的烧录通道），USB 通信必须可靠。**已决定外加 8MHz HSE 晶振（Y2, JLYE C49158084, ¥0.12）**，系统时钟路径：HSE 8MHz → PLL ×18 → 144MHz SYSCLK → USB 48MHz 专用 PLL，确保 USB 时钟精度满足规范。
+| 位号 | 搜索词 | 说明 |
+|------|--------|------|
+| **J1** | `TYPE-C 16P 卧贴` | USB-C 母座，PD 输入 |
+| **J2** | `USB-A 母座 4P 卧贴` | USB-A 母座，负载输出 |
+| **J3** | `排针 1x4P 2.54mm` | SWD 调试接口 |
+| **J4** | `排针 1x3P 2.54mm` | UART 调试串口 (TX/RX/GND) |
 
 ---
 
-## Module 3: PD 触发模块
+## 第三步：放置晶振
 
-### CFG 引脚编码表（CH224K GPIO 硬件触发）
+| 位号 | 立创商城编号 | 型号 | 封装 | 频率 |
+|------|-------------|------|------|------|
+| **Y2** | `C49158084` | Y32258MCBCX | SMD3225-4P | 8MHz HSE |
 
-| CFG3 (PA4) | CFG2 (PA3) | CFG1 (PA2) | 请求电压 |
-|-------------|-------------|-------------|----------|
+Y2 是 4-pin 封装：Pin1/2 = XTAL 脚，Pin3/4 = GND（接地）。
+
+> **32.768kHz LSE 晶振已移除。** 本项目无需 RTC——没有电池备份、没有时间戳需求、固件时间基准走 SysTick。PC14/PC15 留作预留 GPIO。
+
+---
+
+## 第四步：放置无源器件（电阻、电容、电感）
+
+> 无源器件可使用立创 EDA 通用库（`Resistor` / `Capacitor` / `Inductor`）+ 指定封装。
+
+### 电容
+
+| 位号 | 容值 | 封装 | 用途 |
+|------|------|------|------|
+| C1 | 10µF/50V | 0805 | VBUS 输入滤波 |
+| C2 | 100nF/50V | 0603 | VBUS 高频去耦 |
+| C3 | 10µF/16V | 0805 | 3.3V 输出滤波 |
+| C4 | 100nF/16V | 0603 | 3.3V 高频去耦 |
+| C5 | 10µF/16V | 0805 | VDDA 模拟滤波 |
+| C6 | 100nF/16V | 0603 | VDDA 高频去耦 |
+| ~~C7~~ | — | — | **已移除（随 LSE 晶振）** |
+| ~~C8~~ | — | — | **已移除（随 LSE 晶振）** |
+| C9~C12 | 100nF | 0603 | MCU VDD 去耦 (×4) |
+| C13 | 10µF/50V | 0805 | CH224K VBUS 滤波 |
+| C14 | 100nF | 0603 | CH224K 高频去耦 |
+| C15 | 0.1µF | 0603 | INA226 VBUS 滤波 |
+| C16 | 100nF | 0603 | INA226 VS 去耦 |
+| C17 | 12pF NPO | 0603 | 8MHz HSE 负载电容 |
+| C18 | 12pF NPO | 0603 | 8MHz HSE 负载电容 |
+| C_NRST | 100nF | 0603 | 复位引脚滤波 |
+
+### 电阻
+
+| 位号 | 阻值 | 封装 | 用途 |
+|------|------|------|------|
+| R_SHUNT | 10mΩ/±1% | 0805 | 电流采样分流电阻 |
+| R_SENSE+ | 0Ω | 0603 | Kelvin S+ 调试跳线 |
+| R_SENSE- | 0Ω | 0603 | Kelvin S- 调试跳线 |
+| R_VBUS | 100Ω | 0603 | INA226 VBUS 检测限流 |
+| R_SCL | 4.7kΩ | 0603 | I²C SCL 上拉 |
+| R_SDA | 4.7kΩ | 0603 | I²C SDA 上拉 |
+| R_MODE | 10kΩ | 0603 | KEY_MODE 上拉 |
+| R_CONFIRM | 10kΩ | 0603 | KEY_CONFIRM 上拉 |
+| R_BOOT | 10kΩ | 0603 | BOOT0 下拉 |
+| R_NRST | 10kΩ | 0603 | NRST 上拉 |
+| R_CC1 | 5.1kΩ | 0603 | USB-C CC1 下拉 (Sink识别) |
+| R_CC2 | 5.1kΩ | 0603 | USB-C CC2 下拉 (Sink识别) |
+
+### 电感
+
+| 位号 | 感值 | 封装 | 用途 |
+|------|------|------|------|
+| L1 | 10µH (600Ω@100MHz) | 0805 | VDDA LC 滤波 |
+
+---
+
+## 第五步：放置其他器件
+
+| 位号 | 搜索词 | 说明 |
+|------|--------|------|
+| **OLED1** | `OLED 0.96 I2C` 或放置 4-pin 排母 | 0.96" 128×64 OLED 模块 (VCC/GND/SCL/SDA) |
+| **SW1** | `TS-1102S` | KEY_MODE 触觉按键 |
+| **SW2** | `TS-1102S` | KEY_CONFIRM 触觉按键 |
+| **SW3** | `TS-1102S` | KEY_BOOT 触觉按键 |
+
+---
+
+## 第六步：连线（按模块依次完成）
+
+> 先连电源网络（VBUS / +3V3 / GND），再连信号网络。每连完一个网络，在立创 EDA 中用**网络标号 (Net Label)** 标注。
+
+### 6.1 VBUS 网络（红色线，粗线）
+
+```
+USB-C VBUS (J1.VBUS)
+  ├── CH224K.VBUS (Pin9)
+  ├── HT7533S.IN
+  ├── C1(+) / C2 → GND          ← VBUS 输入滤波
+  ├── C13(+) / C14 → GND        ← CH224K 去耦
+  ├── U5.Pin5 (VBUS ESD)        ← USBLC6-2SC6 VBUS 电源轨保护
+  └── R_SHUNT.Pad1 (分流电阻 VBUS 侧)
+```
+
+### 6.2 VBUS_OUT 网络（分流电阻后 → USB-A 输出）
+
+```
+R_SHUNT.Pad2 (分流电阻负载侧)
+  ├── USB-A.VBUS (J2)
+  └── R_VBUS (100Ω) → INA226.VBUS (Pin2)
+      └── C15 (0.1µF) → GND    ← VBUS 检测滤波
+```
+
+### 6.3 Kelvin Sense（四线开尔文接法—关键精度保证！）
+
+```
+R_SHUNT.Pad1 ── R_SENSE+ (0Ω) ── INA226.IN+ (Pin8)   ← Kelvin S+
+R_SHUNT.Pad2 ── R_SENSE- (0Ω) ── INA226.IN- (Pin7)   ← Kelvin S-
+```
+
+> ⚠️ **PCB 布局注意：** Sense+ / Sense- 走线必须从分流焊盘两端独立引出（四线 Kelvin），**不要**把 Sense 线接在功率线上。这直接影响电流测量精度。
+
+### 6.4 +3V3 网络
+
+```
+HT7533S.OUT
+  ├── C3(+) / C4 → GND          ← 3.3V 输出滤波
+  ├── L1 → C5(+) / C6 → GND     ← LC 滤波 → +3V3_ANA
+  │   └── CH32V203.VDDA (Pin9)
+  ├── CH32V203.VBAT (Pin1)
+  ├── CH32V203.VDD_1 (Pin24) + C9 → GND
+  ├── CH32V203.VDD_2 (Pin36) + C10 → GND
+  ├── CH32V203.VDD_3 (Pin48) + C11 → GND
+  │   + C12 → GND (VDD_3 额外去耦)
+  ├── INA226.VS (Pin6) + C16 → GND
+  ├── OLED1.VCC
+  ├── J3.Pin4 (SWD 3.3V 参考)
+  ├── R_NRST (10kΩ 上拉) → NRST
+  ├── R_SCL (4.7kΩ 上拉) → I2C_SCL
+  ├── R_SDA (4.7kΩ 上拉) → I2C_SDA
+  ├── R_MODE (10kΩ 上拉) → KEY_MODE
+  ├── R_CONFIRM (10kΩ 上拉) → KEY_CONFIRM
+  └── SW3.PinA → KEY_BOOT (按下 = BOOT0 拉高至 +3V3)
+```
+
+### 6.5 GND 网络
+
+所有以下引脚接地。**使用立创 EDA 的 GND 符号**统一标注：
+
+- U1.GND, U2.VSSA, U2.VSS_1, U2.VSS_2, U2.VSS_3
+- U3.GND (Pin5 + Pin8)
+- U4.A0 (Pin1), U4.A1 (Pin10), U4.GND (Pin9)
+- U5.Pin2, U6.Pin2
+- J1.GND, J2.GND, J3.Pin3, J4.Pin3
+- OLED1.GND
+- C1~C6, C9~C18, C_NRST 的 GND 侧
+- R_CC1, R_CC2 → GND 侧
+- R_BOOT → GND (BOOT0 下拉)
+- Y2.Pin3, Y2.Pin4 (HSE 晶振 GND 脚)
+- C17, C18 的 GND 侧
+
+### 6.6 NRST 复位网络
+
+```
++3V3 ── R_NRST (10kΩ) ──┬── CH32V203.NRST (Pin7)
+                         └── C_NRST (100nF) ── GND
+```
+
+### 6.7 USB D+/D- 差分信号（穿通 ESD）
+
+```
+USB-C.D+ (J1) ── U5.Pin1 (I/O1 IN) ──[内部穿通]── U5.Pin6 (I/O1 OUT) ── CH32V203.PA12 (Pin33)
+USB-C.D- (J1) ── U5.Pin3 (I/O2 IN) ──[内部穿通]── U5.Pin4 (I/O2 OUT) ── CH32V203.PA11 (Pin32)
+```
+
+> 使用网络标号：`USB_DP` / `USB_DM`。在 PCB 中这对线需要 **90Ω 差分阻抗控制**。
+
+### 6.8 USB-A D+/D-（ESD 保护）
+
+```
+USB-A.D+ (J2) ── U6.Pin1 (I/O1 IN) ── U6.Pin6 NC (悬空)
+USB-A.D- (J2) ── U6.Pin3 (I/O2 IN) ── U6.Pin4 NC (悬空)
+```
+
+> USB-A 端仅输出功率，D+/D- 不接 MCU，但保留 ESD 防护。U6.Pin5 (VBUS) 在 USB-A 端悬空。
+
+### 6.9 CC1/CC2（PD 协议 + Sink 识别）
+
+```
+USB-C.CC1 (J1) ──┬── CH224K.CC1 (Pin4)    ← PD 协议通信
+                   └── R_CC1 (5.1kΩ) ── GND  ← Sink 识别
+
+USB-C.CC2 (J1) ──┬── CH224K.CC2 (Pin3)    ← PD 协议通信 (可不接)
+                   └── R_CC2 (5.1kΩ) ── GND  ← Sink 识别
+```
+
+> ⚠️ **CC1/CC2 的 5.1kΩ 下拉电阻是必须的！** 这告诉 USB-C 主机端这是一个 Sink 设备，电脑才会输出 VBUS 供电。不加 USB ISP 无法工作。
+
+### 6.10 PD CFG 档位选择
+
+```
+CH32V203.PA2 (Pin12) ── CH224K.CFG1 (Pin6)    网络标号: CFG1
+CH32V203.PA3 (Pin13) ── CH224K.CFG2 (Pin7)    网络标号: CFG2
+CH32V203.PA4 (Pin14) ── CH224K.CFG3 (Pin10)   网络标号: CFG3
+```
+
+档位编码表：
+
+| CFG3 | CFG2 | CFG1 | 请求电压 |
+|------|------|------|----------|
 | 0 | 0 | 0 | 5V |
 | 0 | 0 | 1 | 9V |
 | 0 | 1 | 0 | 12V |
 | 0 | 1 | 1 | 15V |
 | 1 | 0 | 0 | 20V |
-| 1 | 0 | 1 | 保留 |
-| 1 | 1 | 0 | 保留 |
-| 1 | 1 | 1 | 保留 |
 
-> MCU 通过 GPIO PA2/PA3/PA4 输出 0/1 控制 CFG1/CFG2/CFG3，拉低=0，拉高=1。
+### 6.11 I²C 总线
 
-### 连接表
+```
+CH32V203.PB6 (Pin42) ──┬── INA226.SCL (Pin4)
+                        ├── OLED1.SCL
+                        └── R_SCL (4.7kΩ) ── +3V3
 
-| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
-|---------------|-----------------|------|-----------|
-| USB-C.VBUS | CH224K.VBUS (Pin 9) | VBUS | PD 功率输入 |
-| USB-C.GND | CH224K.GND (Pin 5, 8) | GND | — |
-| USB-C.CC1 (A5) | CH224K.CC1 (Pin 4) | CC1 | PD 协议通信 |
-| USB-C.CC1 (A5) | R_CC1 (5.1kΩ) → GND | CC1 | **USB-C Sink 识别**，让电脑输出 VBUS |
-| USB-C.CC2 (B5) | R_CC2 (5.1kΩ) → GND | CC2 | **USB-C Sink 识别**，5.1kΩ 下拉 |
-| USB-C.CC2 (B5) | CH224K.CC2 (Pin 3) | CC2 | PD 协议通信（可 NC） |
-| CH32V203.PA2 | CH224K.CFG1 (Pin 6) | CFG1 | 档位选择，0=GND, 1=+3V3 |
-| CH32V203.PA3 | CH224K.CFG2 (Pin 7) | CFG2 | 档位选择 |
-| CH32V203.PA4 | CH224K.CFG3 (Pin 10) | CFG3 | 档位选择 |
-| CH224K.VBUS (Pin 9) | USB-A.VBUS (经分流) | VBUS_OUT | 功率输出至负载 |
-| CH224K.VBUS | C13 10µF // C14 100nF → GND | VBUS | 输入去耦 |
+CH32V203.PB7 (Pin43) ──┬── INA226.SDA (Pin5)
+                        ├── OLED1.SDA
+                        └── R_SDA (4.7kΩ) ── +3V3
+```
 
-### 关键器件参数
+INA226 地址：A0=GND, A1=GND → 7-bit 地址 **0x40**
 
-| 器件位号 | 型号 | 封装 | 参数 | 立创编号 |
-|----------|------|------|------|----------|
-| U3 | CH224K | ESSOP-10 | PD 3.0 / PPS / QC3.0 | C970725 |
-| C13 | MLCC 10µF | 0805 | 50V X7R | — |
-| C14 | MLCC 100nF | 0603 | 50V X7R | — |
+### 6.12 按键
+
+```
++3V3 ── R_MODE (10kΩ) ──┬── CH32V203.PA0 (Pin10)
+                         └── SW1 ── GND
+
++3V3 ── R_CONFIRM (10kΩ) ──┬── CH32V203.PA1 (Pin11)
+                            └── SW2 ── GND
+
++3V3 ── SW3 ──┬── CH32V203.BOOT0 (Pin44)
+               └── R_BOOT (10kΩ) ── GND
+```
+
+> BOOT 逻辑：松开 → R_BOOT 拉低 BOOT0 = Flash 正常启动；按下 → BOOT0 拉高 = 进入 USB Bootloader。
+
+### 6.13 SWD 调试口
+
+```
+J3.Pin1 (SWCLK) ── CH32V203.PA14 (Pin37)
+J3.Pin2 (SWDIO) ── CH32V203.PA13 (Pin34)
+J3.Pin3 (GND)   ── GND
+J3.Pin4 (3.3V)  ── +3V3
+```
+
+### 6.14 UART 调试串口
+
+```
+J4.Pin1 (TX)  ── CH32V203.PA9 (Pin30)    网络标号: UART_TX
+J4.Pin2 (RX)  ── CH32V203.PA10 (Pin31)   网络标号: UART_RX
+J4.Pin3 (GND) ── GND
+```
+
+> 仅 3-pin (TX/RX/GND)，不对外供电。波特率 115200 8N1。
+
+### 6.15 晶振电路
+
+```
+CH32V203.OSC_IN (Pin5)
+  ├── Y2.Pin1 (8MHz)
+  └── C17 (12pF) ── GND
+
+CH32V203.OSC_OUT (Pin6)
+  ├── Y2.Pin2 (8MHz)
+  └── C18 (12pF) ── GND
+
+Y2.Pin3 ── GND
+Y2.Pin4 ── GND
+
+CH32V203.PC14 (Pin3) ── NC (预留 GPIO)
+CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
+```
+
+> HSE 晶振必须靠近 MCU Pin5/Pin6 放置，走线 <10mm，周圈包 GND 护环。PC14/PC15 为预留 GPIO，不做连接。
 
 ---
 
-## Module 4: 电流检测模块
+## 第七步：放置电源符号和 GND 符号
 
-### 拓扑
-
-```
-VBUS ──→ 10mΩ 分流 ──┬──→ USB-A VBUS（负载）
-                      │
-            Kelvin S+ ─┤── R_SENSE+ ──→ INA226 IN+ (Pin 8)
-            Kelvin S- ─┘── R_SENSE- ──→ INA226 IN- (Pin 7)
-                       
-VBUS ──→ R_filter (100Ω) ──┬──→ INA226 VBUS (Pin 2)
-                           └──→ C_filter (0.1µF) → GND
-```
-
-### 连接表
-
-| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
-|---------------|-----------------|------|-----------|
-| R_SHUNT.Pad1 (VBUS侧) | INA226.IN+ (Pin 8) | SENSE_P | Kelvin S+ 走线，经 R_SENSE+ 0Ω |
-| R_SHUNT.Pad2 (负载侧) | INA226.IN- (Pin 7) | SENSE_N | Kelvin S- 走线，经 R_SENSE- 0Ω |
-| VBUS | INA226.VBUS (Pin 2) | VBUS | 经 100Ω + 0.1µF → GND |
-| CH32V203.PB6 | INA226.SCL (Pin 4) | I2C_SCL | 4.7kΩ 上拉 |
-| CH32V203.PB7 | INA226.SDA (Pin 5) | I2C_SDA | 4.7kΩ 上拉 |
-| +3V3 | INA226.VS (Pin 6) | +3V3 | 经 100nF → GND |
-| GND | INA226.GND (Pin 1, 9, 10) | GND | Pin 1=A0=GND, Pin 9=GND, Pin 10=A1=GND |
-| INA226.ALERT (Pin 3) | NC | — | 悬空（不使用告警功能） |
-
-### INA226 地址配置
-
-| A0 (Pin 1) | A1 (Pin 10) | 7-bit 地址 |
-|------------|--------------|------------|
-| GND | GND | **0x40** (1000000b) |
-
-### 关键器件参数
-
-| 器件位号 | 型号 | 封装 | 参数 | 立创编号 |
-|----------|------|------|------|----------|
-| U4 | INA226AIDGSR | VSSOP-10 | 16-bit ADC, I²C | C49851 |
-| R_SHUNT | 合金 10mΩ ±1% | 0805 | 3A/90mW | — |
-| R_SENSE+, R_SENSE- | 0Ω | 0603 | 可选，调试用 | — |
-| R_VBUS_FILTER | 100Ω | 0603 | Vbus 检测滤波 | — |
-| C15 | MLCC 0.1µF | 0603 | 16V X7R | Vbus 滤波 |
-| C16 | MLCC 100nF | 0603 | 16V X7R | VS 去耦 |
+在立创 EDA 中使用工具栏中的：
+- **VCC 符号** → 标注 `+3V3`
+- **GND 符号** → 所有接地点
+- 可选：**VBUS 电源端口**（Power Flag），用于 ERC 检查
 
 ---
 
-## Module 5: 显示与交互
+## 第八步：检查和验证
 
-### 连接表
+完成连线后，运行以下检查：
 
-| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
-|---------------|-----------------|------|-----------|
-| +3V3 | OLED.VCC | +3V3 | 模块 Pin1 |
-| GND | OLED.GND | GND | 模块 Pin2 |
-| CH32V203.PB6 | OLED.SCL | I2C_SCL | 模块 Pin3 |
-| CH32V203.PB7 | OLED.SDA | I2C_SDA | 模块 Pin4 |
-| +3V3 | R_PU_MODE (10kΩ) → KEY_MODE | KEY_MODE | 上拉 |
-| KEY_MODE | CH32V203.PA0 | KEY_MODE | 按键另一端接 GND |
-| +3V3 | R_PU_CONFIRM (10kΩ) → KEY_CONFIRM | KEY_CONFIRM | 上拉 |
-| KEY_CONFIRM | CH32V203.PA1 | KEY_CONFIRM | 按键另一端接 GND |
-| +3V3 | R_BOOT (10kΩ) → BOOT0 | BOOT0 | 下拉偏置（注：此处为下拉至 GND） |
-| BOOT0 | KEY_BOOT → +3V3 | BOOT0 | 按下时拉高至 +3V3 |
-
-### BOOT 电路修正（原理图绘制注意）
-
-```
-BOOT0 ──┬── KEY_BOOT ── +3V3    ← 按下 = 高电平 = ISP 模式
-        │
-        └── R_BOOT (10kΩ) ── GND ← 松开 = 下拉 = 正常运行
-```
-
-### 关键器件参数
-
-| 器件位号 | 型号 | 封装 | 参数 | 立创编号 |
-|----------|------|------|------|----------|
-| OLED1 | 0.96" OLED SSD1315 I²C | 模块 (27×27mm) | 128×64, 4-pin, 3.3V | — |
-| SW1, SW2, SW3 | TS-1102S-C | SMD 4-pin (3×6×2.5mm) | 触觉按键 | — |
-| R_PU_MODE | 10kΩ | 0603 | 上拉至 +3V3 | — |
-| R_PU_CONFIRM | 10kΩ | 0603 | 上拉至 +3V3 | — |
-| R_BOOT | 10kΩ | 0603 | 下拉至 GND | — |
-
----
-
-## Module 6: 调试与烧录（三路协同）
-
-### 6.1 USB ISP — 主力烧录（仅需 USB-C 线）
-
-**原理：** 上电时 BOOT0=高 → CH32V203 进入 USB Bootloader（出厂固化 ROM）→ PC 通过 USB-C 识别为 WCH ISP 设备 → WCHISPTool 一键烧录。
-
-| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
-|---------------|-----------------|------|-----------|
-| USB-C.DP (A6/B6) | CH32V203.PA12 (Pin 33) | USB_DP | 90Ω 差分对，加 ESD 保护后至 MCU |
-| USB-C.DN (A7/B7) | CH32V203.PA11 (Pin 32) | USB_DM | 90Ω 差分对 |
-| USB-C.CC1 (A5) | R_CC1 5.1kΩ → GND | CC1 | **必须！** USB-C Sink 识别 |
-| USB-C.CC2 (B5) | R_CC2 5.1kΩ → GND | CC2 | **必须！** 否则电脑不供电 |
-| BOOT0 | KEY_BOOT → +3V3 (按下) | BOOT0 | 按住上电 = 进入 USB Bootloader |
-| BOOT0 | R_BOOT 10kΩ → GND (松开) | BOOT0 | 松开 = 正常启动 APP |
-
-**烧录操作：**
-
-```
-按住 BOOT 键 → 插 USB-C 线到电脑 → 松开 BOOT 键
-→ WCHISPTool 下载接口选 "USB" → 加载 .hex → 下载 → 完成
-```
-
-### 6.2 SWD 调试口（断点/单步/变量监视）
-
-| SWD 排针 Pin | 网络 | 连接 | 备注 |
-|--------------|------|------|------|
-| 1 | SWCLK | CH32V203.PA14 | SWD 时钟 |
-| 2 | SWDIO | CH32V203.PA13 | SWD 数据 |
-| 3 | GND | GND | 参考地 |
-| 4 | +3V3 | +3V3 | 仅供电参考 |
-
-- 配套 WCH-LinkE 调试器（¥9.9）
-- MounRiver Studio 在线调试
-
-### 6.3 USART1 调试串口（printf 日志）
-
-| UART 排针 Pin | 网络 | 连接 | 备注 |
-|---------------|------|------|------|
-| 1 | UART_TX | CH32V203.PA9 | MCU TX → USB-TTL RX |
-| 2 | UART_RX | CH32V203.PA10 | MCU RX ← USB-TTL TX |
-| 3 | GND | GND | 参考地 |
-
-> 用途：运行时串口助手实时看 V/I/P 日志。115200 8N1。不需接 VCC。
-
-### 6.4 USB ESD 保护
-
-**USBLC6-2SC6 引脚定义（SOT-23-6 顶视图）：**
-```
-         ┌──────────┐
-  I/O1 ──┤ 1      6 ├── I/O1     （Pin1 与 Pin6 内部直连）
-   GND ──┤ 2      5 ├── VBUS     （Pin3 与 Pin4 内部直连）
-  I/O2 ──┤ 3      4 ├── I/O2
-         └──────────┘
-```
-
-**USB-C 端 ESD 保护（U5）— D+/D- 信号穿过 ESD 芯片再到 MCU：**
-
-| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
-|---------------|-----------------|------|-----------|
-| USB-C.D+ (A6/B6) | U5.Pin1 (I/O1 入口) | USB_DP_ESD_IN | D+ 信号进入 ESD |
-| U5.Pin6 (I/O1 出口) | CH32V203.PA12 (Pin 33) | USB_DP | D+ 经过 ESD 后到 MCU |
-| USB-C.D- (A7/B7) | U5.Pin3 (I/O2 入口) | USB_DM_ESD_IN | D- 信号进入 ESD |
-| U5.Pin4 (I/O2 出口) | CH32V203.PA11 (Pin 32) | USB_DM | D- 经过 ESD 后到 MCU |
-| U5.Pin2 | GND | GND | ESD 泄放地 |
-| U5.Pin5 | VBUS | VBUS | VBUS 电源轨保护 |
-
-**USB-A 端 ESD 保护（U6）— 信号未连 MCU 但保留 ESD 防护：**
-
-| 源端器件.引脚 | 目标端器件.引脚 | 网络 | 参数/备注 |
-|---------------|-----------------|------|-----------|
-| USB-A.D+ (Pin 3) | U6.Pin1 | USB_A_DP | ESD 入口，出口 Pin6 NC |
-| USB-A.D- (Pin 2) | U6.Pin3 | USB_A_DN | ESD 入口，出口 Pin4 NC |
-| U6.Pin2 | GND | GND | ESD 泄放地 |
-| U6.Pin5 | — | NC | 悬空（USB-A 端不保护 VBUS） |
-
-> ✅ **【已修正 #3 — USBLC6-2SC6 连接】** 已对照 ST DS4260 Rev 7 datasheet 确认引脚定义。旧连接表将 D- 错误接入了 Pin2（GND），且缺少出口端到 MCU 的连接——按旧表画原理图会导致 D- 对地短路、MCU 收不到任何 USB 信号。现已补全完整的信号穿通路径。
-
-### 6.5 三路协同总结
-
-| 场景 | 用哪路 | 工具 | 连接 |
-|------|--------|------|------|
-| 日常烧录 | **USB ISP** | WCHISPTool | 仅 USB-C 线 |
-| 在线调试（断点/单步） | SWD | WCH-LinkE + MounRiver Studio | SWD 4-pin 排线 |
-| 运行时看日志 | USART1 | 串口助手 | USB-TTL 模块 |
-| SWD 被锁/调试器不在 | **USB ISP** | WCHISPTool | 仅 USB-C 线 |
-
-### 关键器件参数
-
-| 器件位号 | 型号 | 封装 | 参数 | 立创编号 |
-|----------|------|------|------|----------|
-| J1 | 排针 1×4P | 2.54mm 直插 | SWD 接口 | — |
-| J2 | 排针 1×3P | 2.54mm 直插 | Debug UART (TX/RX/GND) | — |
-| R_CC1, R_CC2 | 5.1kΩ ±5% | 0603 | USB-C Sink 下拉电阻 | — |
-| U5, U6 | USBLC6-2SC6 | SOT-23-6 | USB 2.0 ESD 保护, ±15kV | — |
-
----
-
-## 全局 BOM 汇总
-
-| 位号 | 型号 | 封装 | 数量 | 立创编号 |
-|------|------|------|------|----------|
-| U1 | HT7533S (UMW) | SOT-23-3 | 1 | C347215 |
-| U2 | CH32V203C8T6 | LQFP-48 | 1 | C3001172 |
-| U3 | CH224K | ESSOP-10 | 1 | C970725 |
-| U4 | INA226AIDGSR | VSSOP-10 | 1 | C49851 |
-| U5, U6 | USBLC6-2SC6 | SOT-23-6 | 2 | — |
-| Y1 | TKD SF32WK32768D31T002 | SMD3215-2P | 1 | C271654 |
-| Y2 | JLYE Y32258MCBCX | SMD3225-4P | 1 | C49158084 |
-| OLED1 | 0.96" SSD1315 I²C | 模块 | 1 | — |
-| SW1,SW2,SW3 | TS-1102S-C | SMD 4p | 3 | — |
-| R_SHUNT | 10mΩ ±1% 合金 | 0805 | 1 | — |
-| J1 | 排针 1×4P | 2.54mm 直插 | SWD 接口 | — |
-| J2 | 排针 1×3P | 2.54mm 直插 | Debug UART (TX/RX/GND) | — |
-| R_CC1, R_CC2 | 5.1kΩ ±5% | 0603 | USB-C Sink 下拉 | — |
-| USB-C | TYPE-C 16P 卧贴 | 16P SMD | 1 | — |
-| USB-A | USB-A 4P 卧贴 | 4P SMD | 1 | — |
-| C1, C3, C5, C13 | MLCC 10µF | 0805 | 4 | — |
-| C2, C4, C6, C9~C12, C14, C16, C_NRST | MLCC 100nF | 0603 | 10 | — |
-| C7, C8, C17, C18 | MLCC 12pF NPO | 0603 | 4 | — |
-| C15 | MLCC 0.1µF | 0603 | 1 | — |
-| R_PU_MODE/R_CONFIRM | 10kΩ | 0603 | 2 | — |
-| R_BOOT, R_PU_NRST | 10kΩ | 0603 | 2 | — |
-| R_PU_I2C_SCL/SDA | 4.7kΩ | 0603 | 2 | — |
-| R_SENSE+,R_SENSE- | 0Ω | 0603 | 2 | — |
-| R_VBUS_FILTER | 100Ω | 0603 | 1 | — |
-| L1 | 磁珠/电感 10µH | 0805 | 1 | — |
-
-> ✅ **【已修正 #4 — BOM 计数与信号不匹配】** 两处已修正：
-> - 100nF 电容总数已修正为 10 颗（C2, C4, C6, C9~C12, C14, C16, C_NRST）
-> - J2 为 **3P 排针**（TX/RX/GND），Module 1 中已移除不存在的 Pin4 连接
-
----
-
-## Gate 6 验证
-
-| 检查项 | 状态 |
+| 检查项 | 方法 |
 |--------|------|
-| 已询问用户是否需要模块原理图 | ⏳ 见下方 |
-| 用户已选择展示方式 | ⏳ 见下方 |
-| KiCad/立创 EDA MCP Server 不可用 → 回退到结构化连接表 | ✅ 已回退 |
-| 每个模块标注了器件型号、引脚连接和关键参数值 | ✅ |
-| 电源轨标注了电压和电流预算 | ✅（+3V3 ~10mA） |
-| 原理图片段可直接交给硬件工程师 | ✅ |
+| ERC (电气规则检查) | 立创 EDA → 设计 → 电气规则检查 (ERC) |
+| 单网络高亮 | 点击网络标号，确认连通性与预期一致 |
+| 未连接引脚 | ERC 会报告浮空输入引脚，逐一确认 |
+| BOM 一致性 | 设计 → BOM 导出，对比 `03-components.md` 中的位号和型号 |
+
+### 关键交叉检查清单
+
+- [ ] CH32V203 所有 VDD 引脚 (×4) 均接 +3V3 + 100nF 去耦
+- [ ] CH32V203 所有 VSS 引脚 (×4) 均接 GND
+- [ ] VDDA 经 LC 滤波 (L1 + C5//C6) 后接 +3V3_ANA
+- [ ] INA226 A0/A1 均接 GND（地址 0x40）
+- [ ] INA226 ALERT (Pin3) 悬空
+- [ ] CH224K NC1/NC2 (Pin1/Pin2) 悬空
+- [ ] CC1/CC2 均接 5.1kΩ 下拉至 GND
+- [ ] D+/D- 经 U5 (USBLC6-2SC6) 穿通后到 MCU PA11/PA12
+- [ ] USB-A U6 (USBLC6-2SC6) Pin5/Pin6/Pin4 悬空
+- [ ] BOOT0 有 10kΩ 下拉 + SW3 上拉至 +3V3
+- [ ] HSE 晶振 Y2 Pin3/Pin4 接地
+- [ ] I²C 总线 SCL/SDA 各有 4.7kΩ 上拉至 +3V3
+- [ ] 分流电阻采用 Kelvin 四线接法
 
 ---
 
-## 下一步
+## 模块布局建议（原理图页面）
 
-请在会话中确认：
-1. 是否需要我输出模块原理图？当前已按结构化连接表格式完成。
-2. 如需其他格式（ASCII 框图 / D2 图表），可切换。
-3. 确认后进入 Gate 8 — PDF 报告输出阶段。
+```
+ ┌──────────────────────────────────────────────────────────────┐
+ │  [USB-C J1]──[U5 ESD]──[U3 CH224K]                           │
+ │  左侧入口        (D+/D-穿通)   (PD触发, 中上)                   │
+ │     │                                                         │
+ │     ├── [R_SHUNT 分流] ── [U4 INA226] ── [U2 CH32V203 MCU] ──┤
+ │     │    (中左, Kelvin)     (中, 电流检测)   (中央, 主控)       │
+ │     │                                                    │    │
+ │     ├── [U1 HT7533S]                                     │    │
+ │     │    (左下, 3.3V LDO)                                 │    │
+ │     │                                                     │    │
+ │     ├── [OLED1 显示屏]                                     │    │
+ │     │    (左上)                                            │    │
+ │     │                                                     │    │
+ │     ├── [SW1][SW2][SW3] 按键                              │    │
+ │     │    (底部)                                            │    │
+ │     │                                                     │    │
+ │     └── [J3 SWD][J4 UART] 调试口 ── [J2 USB-A 输出]       │    │
+ │          (底部)                       (右侧)               │    │
+ └──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## BOM 导出注意
+
+在立创 EDA 中导出 BOM 时，确认以下器件的**立创商城编号**已正确关联：
+
+| 位号 | 立创编号 | 备注 |
+|------|----------|------|
+| U1 | C347215 | HT7533S |
+| U2 | C3001172 | CH32V203C8T6 |
+| U3 | C970725 | CH224K |
+| U4 | C49851 | INA226AIDGSR |
+| Y2 | C49158084 | 8MHz HSE 晶振 |
+| U5, U6 | C7829 | USBLC6-2SC6 |
+| J1 | C2765186 | USB-C 16P 卧贴 |
+
+无源器件可使用立创 EDA 基础库器件，投板前替换为立创商城编号对应器件以确保封装正确。
+
+---
+
+## 参考资料
+
+- CH32V203 数据手册：`docs/hardware/datasheets/C3001172_*.PDF`
+- CH224K 数据手册：参考 `03-components.md` 中链接
+- INA226 数据手册：参考 `03-components.md` 中链接
+- 完整 BOM + 采购链接：`03-components.md`
+- 完整约束 + PCB 要求：`04-constraints.md`

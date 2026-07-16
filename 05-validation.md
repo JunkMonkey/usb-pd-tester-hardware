@@ -25,7 +25,7 @@
 | EVT-09 | INA226 Vbus 电压读取 | 与万用表比对 | 偏差 <±1% | P0 |
 | EVT-10 | 全负载电流测试 | 电子负载 3A @ 5V/9V/12V/20V，持续 30s | 分流电阻温升 <30°C，读数稳定 | P1 |
 | EVT-11 | 按键交互 | 模式键切换显示页面，确认键锁定档位 | 消抖正常，响应 <100ms | P1 |
-| EVT-12 | 晶振起振检查 | 示波器测 PC14 (OSC32_IN) 和 OSC_IN (Pin5, 8MHz HSE) | 32.768kHz + 8MHz 双晶振均起振，Vpp >0.5V，频率偏差 <±30ppm | P0 |
+| EVT-12 | HSE 晶振起振检查 | 示波器测 OSC_IN (Pin5, 8MHz HSE) | 8MHz 起振，Vpp >0.5V，频率偏差 <±30ppm | P0 |
 | EVT-12b | USB ISP 烧录验证 | 按住 BOOT 上电，USB-C 连电脑，WCHISPTool USB 下载 | 电脑稳定识别 WCH ISP 设备，.hex 烧录成功，重启运行 | P0 |
 | EVT-13 | 3.3V 轨电流实测 | 万用表串入 3.3V 路径 | 总电流 <15mA，确认 LDO 不超载 | P1 |
 | EVT-14 | I²C 总线信号质量 | 示波器测 SCL/SDA，400kHz 模式 | 上升时间 <300ns，无振铃/冲突 | P2 |

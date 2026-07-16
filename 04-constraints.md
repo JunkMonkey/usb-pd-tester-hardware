@@ -47,8 +47,8 @@
 | PB14 | **27** | — | — | — | 预留 | — |
 | PB15 | **28** | — | — | — | 预留 | — |
 | PC13 | **2** | — | — | — | 预留 | — |
-| PC14 | **3** | OSC32_IN | IN | 32.768kHz | 晶振 TKD SF32WK32768D31T002 | RTC 时钟 |
-| PC15 | **4** | OSC32_OUT | OUT | 32.768kHz | 晶振 TKD SF32WK32768D31T002 | RTC 时钟 |
+| PC14 | **3** | — | — | — | 预留 GPIO | 不接晶振，无需 RTC |
+| PC15 | **4** | — | — | — | 预留 GPIO | 不接晶振，无需 RTC |
 
 > ✅ **【已核实 — 引脚编号】** 已对照 CH32V203 数据手册 V2.8 表 3-1-1（第 17-20 页）逐脚核实。CH32V203C8T6 与 STM32F103C8T6 LQFP-48 **引脚兼容**，PA0=Pin10, PA1=Pin11, PA2=Pin12, PA3=Pin13, PA4=Pin14, VSSA=Pin8, VDDA=Pin9, NRST=Pin7。⚠️ 与 STM32F103 的关键区别：CH32V203 的 Pin 5=OSC_IN (可重映射为 PD0), Pin 6=OSC_OUT (可重映射为 PD1)，复位后默认为 HSE 晶振功能。需要 HSE 晶振时使用这两个引脚。
 
@@ -56,7 +56,8 @@
 |----------|-----|------|------|------|----------|------|
 | BOOT0 | **44** | ISP 选择 | IN | BOOT0 | KEY_BOOT + 10kΩ 下拉 | 高电平 = ISP 模式 |
 | NRST | **7** | 复位 | IN | RST | 10kΩ 上拉 + 100nF 对 GND | 外部复位 |
-| VBAT | **1** | 备份电源 | — | +3.3V | 3.3V 电源轨 | RTC 备份域供电 |
+| VBAT | **1** | 备份电源 | — | +3.3V | 3.3V 电源轨 | 备份域供电（保留，不用可接地） |
+| ~~Y1~~ | — | — | — | — | — | **已移除：本项目无需 LSE 晶振** |
 | VDD_IO_1 | **24** | 数字电源 | — | +3.3V | 3.3V 电源轨 | 100nF 去耦 |
 | VSS_1 | **23** | 数字地 | — | GND | GND | — |
 | VDD_2 | **36** | 数字电源 | — | +3.3V | 3.3V 电源轨 | 100nF 去耦 |
@@ -138,7 +139,7 @@ VBUS (5V~20V)
   │         └── 输出滤波：10µF MLCC + 100nF MLCC（靠近 LDO OUT 脚）
   │
   +3.3V ──┬──→ CH32V203 VDD_IO_1(Pin24) + VDD_2(Pin36) + VDD_IO_3(Pin48)
-          ├──→ CH32V203 VBAT(Pin1)（RTC 备份供电）
+          ├──→ CH32V203 VBAT(Pin1)（备份域供电，接 3.3V 即可）
           ├──→ CH32V203 VDDA(Pin9)（经 LC：10µH + 10µF//100nF）
           ├──→ INA226 VS (2.7~5.5V)
           ├──→ OLED VCC
@@ -154,7 +155,7 @@ VBUS (5V~20V)
 | INA226 | 3.3V | ~0.33mA | 1.1mW | 静态电流 330µA |
 | OLED (SSD1315) | 3.3V | ~3mA | 10mW | 50% 亮度，全屏刷新 |
 | 按键上拉 ×3 | 3.3V | ~1mA | 3.3mW | 10kΩ 上拉，全按下 |
-| 晶振 + 其他 | 3.3V | ~0.5mA | 1.7mW | 32.768kHz 振荡 |
+| HSE 晶振 | 3.3V | ~0.5mA | 1.7mW | 8MHz HSE 振荡 |
 | **3.3V 轨合计** | — | **~9.83mA** | **~32.6mW** | — |
 | HT7533S 裕量 | — | 100mA 额定 | — | **使用率 ~10%，裕量充足** |
 | 负载功率路径 | 5~20V | 0~3A | 0~60W | 不经过 LDO，直接 VBUS → USB-A |
@@ -232,7 +233,6 @@ T_junction = T_ambient + P_LDO × θJA
 | I²C (SCL/SDA) | 8mil | 10mil | — | <60mm | 挂 2 设备，速率 ≤400kHz |
 | SWD (SWCLK/SWDIO) | 8mil | 10mil | — | <50mm | 与 UART 排针相邻 |
 | UART (PA9/PA10) | 8mil | 10mil | — | <50mm | 普通数字信号 |
-| 晶振 OSC32 (Y1) | 6mil | 15mil | — | <10mm | 靠近 MCU PC14/PC15，周边铺 GND 护环 |
 | 晶振 HSE (Y2) | 6mil | 15mil | — | <10mm | 靠近 MCU OSC_IN/OSC_OUT(Pin5/Pin6)，周边铺 GND 护环，远离功率走线 |
 
 ### 3.4 模拟前端约束
@@ -249,7 +249,6 @@ T_junction = T_ambient + P_LDO × θJA
 | CH32V203 VDD_IO_1/VDD_2/VDD_IO_3 | 100nF MLCC 0603 | 紧贴引脚，<3mm |
 | CH32V203 VDDA/VSSA | 10µF + 100nF | 经 LC 滤波：L=10µH + C=10µF//100nF |
 | CH32V203 NRST | 100nF | 对 GND，靠近 Pin 7 |
-| CH32V203 OSC32_IN/OUT (Y1) | 12pF ×2 C0G/NP0 | 紧贴晶振，围 GND 护环 |
 | CH32V203 OSC_IN/OUT (Y2 HSE) | 12pF ×2 C0G/NP0 | 紧贴晶振，围 GND 护环，远离高速数字信号 |
 | HT7533S IN | 10µF + 100nF | 紧贴 IN 引脚 |
 | HT7533S OUT | 10µF + 100nF | 紧贴 OUT 引脚 |

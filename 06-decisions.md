@@ -22,7 +22,7 @@
 | D10 | PCB 层数 | 4 层 (2313 叠层) | 完整 GND 平面、阻抗控制、模拟/数字分区 |
 | D11 | EDA 工具 | 立创 EDA 专业版 | 用户指定、嘉立创生态、器件库齐全 |
 | D12 | 开发工具 | MounRiver Studio（免费） | CH32V203 唯一官方 IDE |
-| D13 | 系统时钟源 | TKD SF32WK32768D31T002 (32.768kHz 12.5pF SMD3215-2P) + **JLYE Y32258MCBCX (8MHz 8pF SMD3225-4P)** | RTC + HSE USB 时钟方案 |
+| D13 | 系统时钟源 | **JLYE Y32258MCBCX (8MHz 8pF SMD3225-4P)** | HSE 8MHz → PLL×18 → 144MHz SYSCLK。无需 RTC，LSE 已移除 |
 | D14 | BOOT 电路 | 按键 + 10kΩ 下拉 | 简单可靠，不占额外 GPIO |
 | D15 | I²C 总线拓扑 | 单总线挂 2 设备（INA226 + OLED） | 地址不冲突（0x40 / 0x3C） |
 | D16 | USB ESD 方案 | USBLC6-2SC6 ×2，信号穿通接线（Pin1→Pin6, Pin3→Pin4），Pin2=GND, Pin5=VBUS | 对照 ST DS4260 Rev 7 修正 |
