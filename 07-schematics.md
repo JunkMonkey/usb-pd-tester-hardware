@@ -43,7 +43,7 @@
 
 **U5 (USB-C 端):** D+ 进 Pin1 → 出 Pin6 → MCU；D- 进 Pin3 → 出 Pin4 → MCU；Pin2=GND；Pin5=VBUS
 
-**U6 (USB-A 端):** D+ 进 Pin1 → Pin6 悬空；D- 进 Pin3 → Pin4 悬空；Pin2=GND；Pin5 悬空
+**U6 (USB-A 公头端):** D+ 进 Pin1 → Pin6 悬空；D- 进 Pin3 → Pin4 悬空；Pin2=GND；Pin5=VBUS_OUT（分流电阻负载侧）
 
 ---
 
@@ -52,7 +52,7 @@
 | 位号 | 搜索词 | 说明 |
 |------|--------|------|
 | **J1** | `TYPE-C 16P 卧贴` | USB-C 母座，PD 输入 |
-| **J2** | `USB-A 母座 4P 卧贴` | USB-A 母座，负载输出 |
+| **J2** | `USB-A 公头 4P 直插` | USB-A 公头，插入被检测设备 (DUT) |
 | **J3** | `排针 1x4P 2.54mm` | SWD 调试接口 |
 | **J4** | `排针 1x3P 2.54mm` | UART 调试串口 (TX/RX/GND) |
 
@@ -147,11 +147,12 @@ USB-C VBUS (J1.VBUS)
   └── R_SHUNT.Pad1 (分流电阻 VBUS 侧)
 ```
 
-### 6.2 VBUS_OUT 网络（分流电阻后 → USB-A 输出）
+### 6.2 VBUS_OUT 网络（分流电阻后 → USB-A 公头 → 被检测设备）
 
 ```
 R_SHUNT.Pad2 (分流电阻负载侧)
-  ├── USB-A.VBUS (J2)
+  ├── USB-A.VBUS (J2.Pin1) → 被检测设备供电
+  ├── U6.Pin5 (VBUS ESD)   ← USBLC6-2SC6 VBUS 电源轨保护
   └── R_VBUS (100Ω) → INA226.VBUS (Pin2)
       └── C15 (0.1µF) → GND    ← VBUS 检测滤波
 ```
@@ -220,14 +221,15 @@ USB-C.D- (J1) ── U5.Pin3 (I/O2 IN) ──[内部穿通]── U5.Pin4 (I/O2 
 
 > 使用网络标号：`USB_DP` / `USB_DM`。在 PCB 中这对线需要 **90Ω 差分阻抗控制**。
 
-### 6.8 USB-A D+/D-（ESD 保护）
+### 6.8 USB-A 公头 D+/D- + VBUS（ESD 保护）
 
 ```
-USB-A.D+ (J2) ── U6.Pin1 (I/O1 IN) ── U6.Pin6 NC (悬空)
-USB-A.D- (J2) ── U6.Pin3 (I/O2 IN) ── U6.Pin4 NC (悬空)
+USB-A.D+ (J2.Pin3) ── U6.Pin1 (I/O1 IN) ── U6.Pin6 NC (悬空)
+USB-A.D- (J2.Pin2) ── U6.Pin3 (I/O2 IN) ── U6.Pin4 NC (悬空)
+USB-A.VBUS (J2.Pin1) ── U6.Pin5 (VBUS)    ← VBUS_OUT 网络，ESD 电源轨保护
 ```
 
-> USB-A 端仅输出功率，D+/D- 不接 MCU，但保留 ESD 防护。U6.Pin5 (VBUS) 在 USB-A 端悬空。
+> USB-A 公头插入被检测设备 (DUT)，仅输出功率，D+/D- 不接 MCU，但保留 ESD 防护。U6.Pin5 接 VBUS_OUT（分流电阻负载侧），为 VBUS 线提供完整 ESD 保护路径（I/O→VBUS→GND 泄放回路）。Pin6/Pin4 悬空（D+/D- 不穿通到 MCU）。
 
 ### 6.9 CC1/CC2（PD 协议 + Sink 识别）
 
@@ -359,7 +361,7 @@ CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
 - [ ] CH224K NC1/NC2 (Pin1/Pin2) 悬空
 - [ ] CC1/CC2 均接 5.1kΩ 下拉至 GND
 - [ ] D+/D- 经 U5 (USBLC6-2SC6) 穿通后到 MCU PA11/PA12
-- [ ] USB-A U6 (USBLC6-2SC6) Pin5/Pin6/Pin4 悬空
+- [ ] USB-A U6 (USBLC6-2SC6) Pin5 接 VBUS_OUT（J2.Pin1 侧），Pin6/Pin4 悬空
 - [ ] BOOT0 有 10kΩ 下拉 + SW3 上拉至 +3V3
 - [ ] HSE 晶振 Y2 Pin3/Pin4 接地
 - [ ] I²C 总线 SCL/SDA 各有 4.7kΩ 上拉至 +3V3
@@ -386,8 +388,8 @@ CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
  │     ├── [SW1][SW2][SW3] 按键                              │    │
  │     │    (底部)                                            │    │
  │     │                                                     │    │
- │     └── [J3 SWD][J4 UART] 调试口 ── [J2 USB-A 输出]       │    │
- │          (底部)                       (右侧)               │    │
+ │     └── [J3 SWD][J4 UART] 调试口 ── [J2 USB-A 公头→DUT]   │    │
+ │          (底部)                       (右侧, 直插)          │    │
  └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -406,6 +408,7 @@ CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
 | Y2 | C49158084 | 8MHz HSE 晶振 |
 | U5, U6 | C7829 | USBLC6-2SC6 |
 | J1 | C2765186 | USB-C 16P 卧贴 |
+| J2 | 搜 `USB-A 公头 4P 直插` | USB-A 公头，插入被检测设备 (DUT) |
 
 无源器件可使用立创 EDA 基础库器件，投板前替换为立创商城编号对应器件以确保封装正确。
 
