@@ -12,7 +12,7 @@
 1. **TYPE-C 母座**焊接是否饱满，16 个引脚有无连锡/虚焊
 2. **USB-A 公头** 4 个引脚焊接是否牢固（直插，插入被检测设备端）
 3. **OLED 屏幕**是否插紧（如果用排针/排母连接）
-4. **三个按键**按压手感是否正常
+4. **四个按键**（MODE/CONFIRM/BOOT/RST）按压手感是否正常
 5. **SWD 和 UART 排针**有无歪斜短路
 6. **10mΩ 分流电阻**（0805 合金）方向、焊盘是否正常
 
@@ -160,13 +160,13 @@ Power:   2.336W
 
 ## 六、按键操作
 
-设备有 **3 个按键**，排列如下：
+设备有 **4 个按键**，排列如下：
 
 ```
-┌──────┐  ┌──────┐  ┌──────┐
-│ MODE │  │ CONFIRM│  │ BOOT │
-│  模式 │  │  确认  │  │  烧录 │
-└──────┘  └──────┘  └──────┘
+┌──────┐  ┌───────┐  ┌──────┐  ┌──────┐
+│ MODE │  │CONFIRM│  │ BOOT │  │ RST  │
+│  模式 │  │  确认  │  │  烧录 │  │ 复位  │
+└──────┘  └───────┘  └──────┘  └──────┘
 ```
 
 ### 6.1 正常运行模式
@@ -176,6 +176,7 @@ Power:   2.336W
 | **MODE** | 切换显示页面 | — |
 | **CONFIRM** | 锁定/解锁当前 PD 档位 | — |
 | **BOOT** | 无功能 | — |
+| **RST** | 硬件复位 MCU | — |
 
 ### 6.2 显示页面
 
@@ -192,6 +193,7 @@ Power:   2.336W
 |------|------|
 | **按住 BOOT 再插 USB-C** | 进入 USB Bootloader，等待烧录 |
 | **松开 BOOT，正常上电** | 从 Flash 启动 APP |
+| **按 RST** | 硬件复位，等同于拔插 USB-C |
 
 ---
 
@@ -295,7 +297,7 @@ USART_Cmd(USART1, ENABLE);
 
 | 问题 | 可能原因 | 排查顺序 |
 |------|----------|----------|
-| OLED 不亮 | 固件未烧录 / I²C 不通 / 模块损坏 | ① 确认已烧录固件 ② 测 I²C 上拉 4.7kΩ ③ 换模块 |
+| OLED 不亮 | 固件未烧录 / SPI 不通 / 模块损坏 | ① 确认已烧录固件 ② 测 SPI SCK/MOSI 波形 ③ 检查 RES/DC/CS 接线 ④ 换模块 |
 | 电压读数偏差大 | INA226 未校准 / 分流焊点不良 | ① 用万用表对比校准 ② 检查 Kelvin 走线 |
 | 电流读数始终为 0 | INA226 I²C 不通 / 分流断路 | ① 测 I²C SCL/SDA 波形 ② 测分流电阻是否断路 |
 | PD 不触发 | CH224K CFG 线错误 / CC 未连接 | ① 测 CFG1/2/3 引脚电平 ② 测 CC1 对 GND 电压 |
@@ -350,12 +352,12 @@ CH32V203C8T6 LQFP-48 功能引脚
   PA2  12┤ CFG1 → CH224K     37┤ PA14 (SWCLK)
   PA3  13┤ CFG2 → CH224K     36┤ VDD_2
   PA4  14┤ CFG3 → CH224K     35┤ VSS_2
-  PA5  15┤                   34┤ PA13 (SWDIO)
-  PA6  16┤                   33┤ PA12 (USB_DP → USB ISP)
-  PA7  17┤                   32┤ PA11 (USB_DM → USB ISP)
-  PB0  18┤                   31┤ PA10 (UART_RX → Debug)
-  PB1  19┤                   30┤ PA9  (UART_TX → Debug)
-  PB2  20┤ (BOOT1, 内部下拉)   29┤ PA8
+  PA5  15┤ OLED_D0 (SPI_SCK) 34┤ PA13 (SWDIO)
+  PA6  16┤ NC (SPI_MISO)     33┤ PA12 (USB_DP → USB ISP)
+  PA7  17┤ OLED_D1 (SPI_MOSI)32┤ PA11 (USB_DM → USB ISP)
+  PB0  18┤ OLED_RES          31┤ PA10 (UART_RX → Debug)
+  PB1  19┤ OLED_DC           30┤ PA9  (UART_TX → Debug)
+  PB2  20┤ (BOOT1, 内部下拉)   29┤ PA8  (OLED_CS)
   PB10 21┤                   28┤ PB15
   PB11 22┤                   27┤ PB14
   VSS_1 23┤                   26┤ PB13

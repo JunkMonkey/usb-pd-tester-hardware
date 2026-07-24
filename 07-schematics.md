@@ -124,10 +124,11 @@ Y2 是 4-pin 封装：Pin1/2 = XTAL 脚，Pin3/4 = GND（接地）。
 
 | 位号 | 搜索词 | 说明 |
 |------|--------|------|
-| **OLED1** | `OLED 0.96 I2C` 或放置 4-pin 排母 | 0.96" 128×64 OLED 模块 (VCC/GND/SCL/SDA) |
+| **OLED1** | `HS96L01W4S03` 或放置 1×7P 排母 | 0.96" 128×64 SPI OLED 模块 (GND/VCC/D0/D1/RES/DC/CS)，立创 C5139758 |
 | **SW1** | `TS-1102S` | KEY_MODE 触觉按键 |
 | **SW2** | `TS-1102S` | KEY_CONFIRM 触觉按键 |
-| **SW3** | `TS-1102S` | KEY_BOOT 触觉按键 |
+| **SW3** | `TS-1102S` | KEY_BOOT 触觉按键（BOOT0 控制） |
+| **SW4** | `TS-1102S` | KEY_RST 复位按键（NRST 控制） |
 
 ---
 
@@ -261,36 +262,86 @@ CH32V203.PA4 (Pin14) ── CH224K.CFG3 (Pin10)   网络标号: CFG3
 | 0 | 1 | 1 | 15V |
 | 1 | 0 | 0 | 20V |
 
-### 6.11 I²C 总线
+### 6.11 I²C 总线（仅 INA226）
 
 ```
 CH32V203.PB6 (Pin42) ──┬── INA226.SCL (Pin4)
-                        ├── OLED1.SCL
                         └── R_SCL (4.7kΩ) ── +3V3
 
 CH32V203.PB7 (Pin43) ──┬── INA226.SDA (Pin5)
-                        ├── OLED1.SDA
                         └── R_SDA (4.7kΩ) ── +3V3
 ```
 
 INA226 地址：A0=GND, A1=GND → 7-bit 地址 **0x40**
 
-### 6.12 按键
+### 6.12 SPI OLED 显示屏（HS96L01W4S03）
 
+OLED 模块使用 **SPI1** 接口，驱动芯片 SSD1315，分辨率 128×64。
+
+**HS96L01W4S03 引脚定义（7-pin，从左到右）：**
+
+| Pin | 名称 | 功能 | 连接 MCU 引脚 |
+|-----|------|------|---------------|
+| 1 | GND | 电源地 | GND |
+| 2 | VCC | 电源正 (3.3V) | +3V3 |
+| 3 | D0 (SCLK) | SPI 时钟 | PA5 (Pin15) — SPI1_SCK |
+| 4 | D1 (MOSI) | SPI 数据输入 | PA7 (Pin17) — SPI1_MOSI |
+| 5 | RES | 硬件复位（低有效） | PB0 (Pin18) — GPIO 输出 |
+| 6 | DC | 数据/命令选择 | PB1 (Pin19) — GPIO 输出 |
+| 7 | CS | 片选（低有效） | PA8 (Pin29) — GPIO 输出 |
+
+**接线图：**
+
+```
+OLED1.Pin1 (GND)  ── GND
+OLED1.Pin2 (VCC)  ── +3V3
+OLED1.Pin3 (D0)   ── CH32V203.PA5 (Pin15, SPI1_SCK)
+OLED1.Pin4 (D1)   ── CH32V203.PA7 (Pin17, SPI1_MOSI)
+OLED1.Pin5 (RES)  ── CH32V203.PB0 (Pin18, GPIO_OUT)
+OLED1.Pin6 (DC)   ── CH32V203.PB1 (Pin19, GPIO_OUT)
+OLED1.Pin7 (CS)   ── CH32V203.PA8 (Pin29, GPIO_OUT)
+```
+
+**去耦电容：** OLED1.VCC 引脚旁放 **100nF (C_OLED)** 到 GND。
+
+> ⚠️ PA6 (SPI1_MISO, Pin16) **不连接**（NC）。SSD1315 OLED 为只写设备，无 MISO 输出。PA6 可留作 GPIO 预留。
+
+> 💡 **SPI 模式：** 使用 SPI1 硬件外设（Mode 0: CPOL=0, CPHA=0），时钟频率建议 ≤10MHz。RES/DC/CS 三个控制引脚用 GPIO 软件控制。
+
+### 6.13 按键（4 个）
+
+**SW1 — KEY_MODE（模式切换）：**
 ```
 +3V3 ── R_MODE (10kΩ) ──┬── CH32V203.PA0 (Pin10)
                          └── SW1 ── GND
+```
+逻辑：松开 → PA0 = HIGH；按下 → PA0 = LOW（下拉到 GND）。
 
+**SW2 — KEY_CONFIRM（确认）：**
+```
 +3V3 ── R_CONFIRM (10kΩ) ──┬── CH32V203.PA1 (Pin11)
                             └── SW2 ── GND
+```
+逻辑：同 SW1。
 
+**SW3 — KEY_BOOT（进入 USB Bootloader）：**
+```
 +3V3 ── SW3 ──┬── CH32V203.BOOT0 (Pin44)
                └── R_BOOT (10kΩ) ── GND
 ```
+逻辑：松开 → R_BOOT 拉低 BOOT0 = Flash 正常启动；按下 → BOOT0 拉高 = 进入 USB Bootloader。
 
-> BOOT 逻辑：松开 → R_BOOT 拉低 BOOT0 = Flash 正常启动；按下 → BOOT0 拉高 = 进入 USB Bootloader。
+**SW4 — KEY_RST（硬件复位）：**
+```
++3V3 ── R_NRST (10kΩ) ──┬── CH32V203.NRST (Pin7) ── C_NRST (100nF) ── GND
+                          │
+                          └── SW4 ── GND
+```
+逻辑：正常运行时 NRST 被 R_NRST 上拉到 3.3V，C_NRST 滤除瞬态干扰；按下 SW4 → NRST 拉低 → MCU 复位。
 
-### 6.13 SWD 调试口
+> **按键布局：** 4 个按键横向排列，SW3(BOOT) 和 SW4(RST) 靠板边放置，便于单指操作且防止误触。SW1(MODE) 和 SW2(CONFIRM) 居中放置。
+
+### 6.14 SWD 调试口
 
 ```
 J3.Pin1 (SWCLK) ── CH32V203.PA14 (Pin37)
@@ -299,7 +350,7 @@ J3.Pin3 (GND)   ── GND
 J3.Pin4 (3.3V)  ── +3V3
 ```
 
-### 6.14 UART 调试串口
+### 6.15 UART 调试串口
 
 ```
 J4.Pin1 (TX)  ── CH32V203.PA9 (Pin30)    网络标号: UART_TX
@@ -309,7 +360,7 @@ J4.Pin3 (GND) ── GND
 
 > 仅 3-pin (TX/RX/GND)，不对外供电。波特率 115200 8N1。
 
-### 6.15 晶振电路
+### 6.16 晶振电路
 
 ```
 CH32V203.OSC_IN (Pin5)
@@ -363,8 +414,11 @@ CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
 - [ ] D+/D- 经 U5 (USBLC6-2SC6) 穿通后到 MCU PA11/PA12
 - [ ] USB-A U6 (USBLC6-2SC6) Pin5 接 VBUS_OUT（J2.Pin1 侧），Pin6/Pin4 悬空
 - [ ] BOOT0 有 10kΩ 下拉 + SW3 上拉至 +3V3
+- [ ] NRST 有 10kΩ 上拉 + 100nF 滤波电容 + SW4 下拉至 GND
 - [ ] HSE 晶振 Y2 Pin3/Pin4 接地
-- [ ] I²C 总线 SCL/SDA 各有 4.7kΩ 上拉至 +3V3
+- [ ] I²C 总线 SCL/SDA 各有 4.7kΩ 上拉至 +3V3（仅 INA226，无 OLED）
+- [ ] OLED SPI：D0→PA5, D1→PA7, RES→PB0, DC→PB1, CS→PA8，VCC 旁 100nF 去耦
+- [ ] OLED PA6 (MISO) 不连接（NC）
 - [ ] 分流电阻采用 Kelvin 四线接法
 
 ---
@@ -382,11 +436,12 @@ CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
  │     ├── [U1 HT7533S]                                     │    │
  │     │    (左下, 3.3V LDO)                                 │    │
  │     │                                                     │    │
- │     ├── [OLED1 显示屏]                                     │    │
- │     │    (左上)                                            │    │
+ │     ├── [OLED1 SPI 7-pin]                                   │    │
+ │     │    (顶部, 竖装或局部加宽, 见 04-constraints 3.2)      │    │
+ │     │    D0→PA5, D1→PA7, RES→PB0, DC→PB1, CS→PA8          │    │
  │     │                                                     │    │
- │     ├── [SW1][SW2][SW3] 按键                              │    │
- │     │    (底部)                                            │    │
+ │     ├── [SW1 MODE][SW2 CONF]  2×2 按键矩阵                │    │
+ │     │   [SW3 BOOT][SW4 RST ]  (底部, 占 12×8mm)           │    │
  │     │                                                     │    │
  │     └── [J3 SWD][J4 UART] 调试口 ── [J2 USB-A 公头→DUT]   │    │
  │          (底部)                       (右侧, 直插)          │    │
@@ -407,8 +462,10 @@ CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
 | U4 | C49851 | INA226AIDGSR |
 | Y2 | C49158084 | 8MHz HSE 晶振 |
 | U5, U6 | C7829 | USBLC6-2SC6 |
+| OLED1 | C5139758 | HS96L01W4S03 0.96" SPI OLED 128×64 |
+| SW1~SW4 | 搜 `TS-1102S` | 4 个触觉按键 (MODE/CONFIRM/BOOT/RST) |
 | J1 | C2765186 | USB-C 16P 卧贴 |
-| J2 | 搜 `USB-A 公头 4P 直插` | USB-A 公头，插入被检测设备 (DUT) |
+| J2 | 搜 `USB-A 公头 4P 直插` | USB-A 公头 (USB-212-BCW)，插入被检测设备 (DUT) |
 
 无源器件可使用立创 EDA 基础库器件，投板前替换为立创商城编号对应器件以确保封装正确。
 
