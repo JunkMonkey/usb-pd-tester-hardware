@@ -23,8 +23,8 @@
 | PA6 | **16** | SPI1_MISO | — | — | NC（不连接） | SSD1315 无 MISO 输出，PA6 可留作 GPIO 预留 |
 | PA7 | **17** | SPI1_MOSI | OUT | OLED_D1 | OLED1.Pin4 (D1/MOSI) | SPI1 数据 → OLED |
 | PA8 | **29** | GPIO 输出 | OUT | OLED_CS | OLED1.Pin7 (CS) | OLED 片选（低有效） |
-| PA9 | **30** | USART1_TX | OUT | UART_TX | ISP 排针 Pin1 | 烧录 / 串口输出 |
-| PA10 | **31** | USART1_RX | IN | UART_RX | ISP 排针 Pin2 | 烧录 / 串口输入 |
+| PA9 | **30** | USART1_TX | OUT | UART_TX | J4 排针 Pin3 (TX) | 烧录 / 串口输出 |
+| PA10 | **31** | USART1_RX | IN | UART_RX | J4 排针 Pin4 (RX) | 烧录 / 串口输入 |
 | PA11 | **32** | USB_DM | I/O | USB_D- | USB-C D- (A7/B7) | USB ISP 烧录 |
 | PA12 | **33** | USB_DP | I/O | USB_D+ | USB-C D+ (A6/B6) | USB ISP 烧录 |
 | PA13 | **34** | SWDIO | I/O | SWD_DAT | SWD 排针 Pin2 | 调试接口 |
@@ -99,15 +99,16 @@
 | 3 | GND | — | 0V | 系统地 |
 | 4 | 3.3V | — | 3.3V | 系统 3.3V（仅供电参考，不对外供电） |
 
-#### USART1 调试串口排针 (1×3P)
+#### USART1 调试串口排针 (1×4P)
 
 | Pin | 信号 | 方向 | 电平 | 连接 |
 |-----|------|------|------|------|
-| 1 | TX | ← | 3.3V | MCU PA9 |
-| 2 | RX | → | 3.3V | MCU PA10 |
-| 3 | GND | — | 0V | 系统地 |
+| 1 | VCC | → | 3.3V | 系统 +3V3 轨（输出，不反向供电） |
+| 2 | GND | — | 0V | 系统地 |
+| 3 | TX | ← | 3.3V | MCU PA9 |
+| 4 | RX | → | 3.3V | MCU PA10 |
 
-> 用途：运行时 `printf` 日志输出到串口助手。连接 USB-TTL 模块时 TX→RX、RX→TX 交叉。
+> 引脚顺序与 CH340/CP2102 USB-TTL 模块对齐 (VCC/GND/TX/RX)，直插无需跳线。连接时 TX→RX、RX→TX 交叉。⚠️ USB-TTL 模块必须切到 **3.3V** 档位，不要用 5V。
 
 #### USB-C 母座 (16P)
 
@@ -232,7 +233,7 @@ T_junction = T_ambient + P_LDO × θJA
 │  [U1 LDO]                                                   │
 │                                                              │
 │  ┌─OLED 7-pin─┐  [MODE][CONF]  [J3 SWD 1×4P]              │
-│  │ 顶部/竖装   │  [BOOT][ RST ] [J4 UART 1×3P]             │
+│  │ 顶部/竖装   │  [BOOT][ RST ] [J4 UART 1×4P]             │
 │  └────────────┘   2×2 按键       双排针                      │
 │                                                              │
 │                                       [USB-C 公头 J2 → DUT]  │

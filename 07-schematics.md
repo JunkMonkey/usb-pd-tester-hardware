@@ -54,7 +54,7 @@
 | **J1** | `TYPE-C 16P 卧贴` | USB-C 母座，PD 输入 |
 | **J2** | `USB-C 公头 24P` | USB-C 公头，插入被检测设备 (DUT)，CC1/CC2 各 56kΩ 上拉 |
 | **J3** | `排针 1x4P 2.54mm` | SWD 调试接口 |
-| **J4** | `排针 1x3P 2.54mm` | UART 调试串口 (TX/RX/GND) |
+| **J4** | `排针 1x4P 2.54mm` | UART 调试串口 (VCC/GND/TX/RX) |
 
 ---
 
@@ -366,12 +366,13 @@ J3.Pin4 (3.3V)  ── +3V3
 ### 6.15 UART 调试串口
 
 ```
-J4.Pin1 (TX)  ── CH32V203.PA9 (Pin30)    网络标号: UART_TX
-J4.Pin2 (RX)  ── CH32V203.PA10 (Pin31)   网络标号: UART_RX
-J4.Pin3 (GND) ── GND
+J4.Pin1 (VCC) ── +3V3                      网络标号: +3V3
+J4.Pin2 (GND) ── GND
+J4.Pin3 (TX)  ── CH32V203.PA9 (Pin30)    网络标号: UART_TX
+J4.Pin4 (RX)  ── CH32V203.PA10 (Pin31)   网络标号: UART_RX
 ```
 
-> 仅 3-pin (TX/RX/GND)，不对外供电。波特率 115200 8N1。
+> 4-pin (VCC/GND/TX/RX)，引脚顺序与常见 CH340/CP2102 USB-TTL 模块对齐，直接插。VCC 为板子 +3V3 轨**输出**，⚠️ 不要从 USB-TTL 模块的 5V 档反向供电。波特率 115200 8N1。
 
 ### 6.16 晶振电路
 
