@@ -231,7 +231,7 @@
 | **品牌** | ST (意法半导体) |
 | **封装** | SOT-23-6 |
 | **保护对象** | USB D+/D- 差分对（每颗保护 1 路 USB） |
-| **用途** | USB-C DP/DN + USB-A DP/DN，共 2 颗 |
+| **用途** | USB-C 母座 DP/DN + USB-C 公头 DP/DN，共 2 颗 |
 
 **采购链接：**
 - 立创商城：https://www.lcsc.com/search?q=USBLC6-2SC6
@@ -259,21 +259,25 @@
 
 ---
 
-### 3.4 USB-A 公头 — 4P 直插
+### 3.4 USB-C 公头 — 24P SMD
 
 | 项目 | 内容 |
 |------|------|
-| **引脚数** | 4P (VBUS/D-/D+/GND) |
-| **安装方式** | 直插（通孔） |
-| **用途** | 插入被检测设备 (DUT)，输出功率 |
+| **引脚数** | 24P（USB 2.0 仅用 ~12P，SuperSpeed/SBU 引脚 NC） |
+| **安装方式** | SMD 直插 |
+| **用途** | 插入被检测设备 (DUT) 的 USB-C 母口，输出功率 |
+| **关键引脚** | VBUS(A4/A9/B4/B9), GND(A1/A12/B1/B12), D+(A6), D-(A7), CC1(A5), CC2(B5) |
+| **CC 上拉** | CC1/CC2 各 **56kΩ Rp 上拉至 VBUS_OUT**（Source/DFP 通告） |
 
-> **设计意图：** USB-A 公头直接插入 DUT 的 USB-A 母口，测试仪作为充电器与 DUT 之间的中间设备，PD 诱导后输出设定电压给 DUT，同时测量 V/I/P。
+> **设计意图：** USB-C 公头直接插入 DUT 的 USB-C 母口，测试仪作为充电器与 DUT 之间的中间设备，PD 诱导后输出设定电压给 DUT，同时测量 V/I/P。CC1/CC2 的 56kΩ Rp 上拉告知 DUT "我是 Source"，DUT 检测到 Rp 后打开 VBUS 受电通路。
+>
+> ⚠️ USB 2.0 仅用 A 面差分对（A6=D+, A7=D-），B 面（B6/B7）及 SuperSpeed（TX/RX）、SBU 引脚全部 NC。
 
 **采购链接：**
-- 立创商城：https://www.lcsc.com/search?q=USB-A+%E5%85%AC%E5%A4%B4+4P+%E7%9B%B4%E6%8F%92
+- 立创商城：https://www.lcsc.com/search?q=USB-C+%E5%85%AC%E5%A4%B4+24P
 
 **封装文件链接：**
-- 立创 EDA 专业版 → 器件搜索 `USB-A 公头 4P 直插` → 直接放置
+- 立创 EDA 专业版 → 器件搜索 `USB-C 公头 24P` → 直接放置
 
 ---
 

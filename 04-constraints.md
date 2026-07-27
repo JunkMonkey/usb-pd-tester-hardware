@@ -123,16 +123,24 @@
 
 > ⚠️ CC1/CC2 各需 5.1kΩ ±5% 下拉电阻，这是 USB-C 规范要求，否则电脑/充电器不会供电。 |
 
-#### USB-A 公头 (4P)（插入被检测设备 DUT）
+#### USB-C 公头 (24P)（插入被检测设备 DUT）
 
 | Pin | 信号 | 用途 |
 |-----|------|------|
-| 1 | VBUS | 功率输出至 DUT（经 CH224K PD 诱导 + 分流电阻测量） |
-| 2 | D- | 经 U6 (USBLC6-2SC6) ESD 保护，不接 MCU |
-| 3 | D+ | 经 U6 (USBLC6-2SC6) ESD 保护，不接 MCU |
-| 4 | GND | 系统地 |
+| A1/A12/B1/B12 | GND | 系统地 |
+| A4/A9/B4/B9 | VBUS | 功率输出至 DUT（经分流电阻测量） |
+| A5 | CC1 | **56kΩ Rp 上拉至 VBUS_OUT**（Source 通告） |
+| B5 | CC2 | **56kΩ Rp 上拉至 VBUS_OUT**（Source 通告） |
+| A6 | D+ | 经 U6 (USBLC6-2SC6) ESD 保护，不接 MCU |
+| A7 | D- | 经 U6 (USBLC6-2SC6) ESD 保护，不接 MCU |
+| B6/B7 | D+/D- | NC（USB 2.0 仅用 A 面差分对） |
+| A2/A3/B2/B3 | TX1/TX2 | NC（SuperSpeed，本项目 USB 2.0） |
+| A8/B8 | SBU1/SBU2 | NC |
+| A10/A11/B10/B11 | RX1/RX2 | NC（SuperSpeed） |
 
-> U6.Pin5 (VBUS) 接 VBUS_OUT 网络（J2.Pin1 侧），为 DUT 供电线提供完整 ESD 保护。
+> ⚠️ CC1/CC2 各需 **56kΩ Rp 上拉至 VBUS_OUT**，这是 USB-C Source（DFP）规范要求。对端 Sink 检测到 Rp 后才会打开 VBUS 受电通路。56kΩ 对应 Default USB Power（最大 3A）。
+>
+> U6.Pin5 (VBUS) 接 VBUS_OUT 网络（J2 VBUS 引脚侧），为 DUT 供电线提供完整 ESD 保护。
 
 ---
 
@@ -145,7 +153,7 @@ VBUS (5V~20V)
   │
   ├──→ CC1 经 5.1kΩ ──→ GND  （USB-C Sink 识别，使电脑输出 VBUS）
   ├──→ CC2 经 5.1kΩ ──→ GND  （USB-C Sink 识别）
-  ├──→ CH224K VBUS ──→ USB-A 公头 VBUS → DUT（负载功率路径，不经 LDO）
+  ├──→ CH224K VBUS ──→ USB-C 公头 VBUS → DUT（负载功率路径，不经 LDO）
   │
   ├──→ HT7533S IN ──→ HT7533S OUT = +3.3V
   │         │
@@ -172,7 +180,7 @@ VBUS (5V~20V)
 | HSE 晶振 | 3.3V | ~0.5mA | 1.7mW | 8MHz HSE 振荡 |
 | **3.3V 轨合计** | — | **~9.83mA** | **~32.6mW** | — |
 | HT7533S 裕量 | — | 100mA 额定 | — | **使用率 ~10%，裕量充足** |
-| 负载功率路径 | 5~20V | 0~3A | 0~60W | 不经过 LDO，直接 VBUS → USB-A |
+| 负载功率路径 | 5~20V | 0~3A | 0~60W | 不经过 LDO，直接 VBUS → USB-C 公头 |
 
 ### 2.3 LDO 热耗散分析
 
@@ -227,7 +235,7 @@ T_junction = T_ambient + P_LDO × θJA
 │  │ 顶部/竖装   │  [BOOT][ RST ] [J4 UART 1×3P]             │
 │  └────────────┘   2×2 按键       双排针                      │
 │                                                              │
-│                                       [USB-A 公头 J2 → DUT]  │
+│                                       [USB-C 公头 J2 → DUT]  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -339,7 +347,7 @@ OLED 7-pin 排针信号 → MCU 引脚物理分布：
 | 板框 | 50mm × 20mm（长条形/笔形） |
 | 板厚 | 1.6mm |
 | 安装孔 | 预留 2 个 M2 安装孔（四角，Φ2.2mm 内径，Φ4.0mm 禁止铺铜区） |
-| 连接器方向 | USB-C 在左端，USB-A 在右端，均朝板外 |
+| 连接器方向 | USB-C 母座在左端，USB-C 公头在右端，均朝板外 |
 | OLED 安装 | 7-pin 排针/排母 (SPI)，顶部安装 |
 | 按键位置 | 底部边缘 4 个按键 (MODE/CONFIRM/BOOT/RST)，间距 ≥8mm，BOOT 和 RST 靠板边防误触 |
 | 排针位置 | 底部边缘 SWD + UART 并排，2.54mm 间距 |
