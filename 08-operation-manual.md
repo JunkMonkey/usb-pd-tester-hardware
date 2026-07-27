@@ -124,14 +124,13 @@
 ### 5.1 硬件连接
 
 ```
-UART 排针（板上 4-pin）      USB-TTL 模块 (CH340/CP2102)
-     VCC (Pin1)       ←→       VCC  (3.3V 档！)
-     GND (Pin2)       →        GND
-     TX  (Pin3)       →        RX
-     RX  (Pin4)       →        TX
+UART 排针（板上 3-pin）      USB-TTL 模块
+     TX (Pin1)        →        RX
+     RX (Pin2)        →        TX
+     GND (Pin3)       →        GND
 ```
 
-> ⚠️ USB-TTL 模块必须切到 **3.3V 输出**档位！板子的 VCC 脚是 +3V3 轨输出，如果 USB-TTL 模块输出 5V 会灌入 3.3V 轨，可能损坏 MCU。如果板子已经由 USB-C 供电，VCC 脚可以不接（只接 GND/TX/RX 三根）。
+> USB-TTL 模块不要接 VCC！板子已经由 USB-C 供电。
 
 ### 5.2 串口助手设置
 

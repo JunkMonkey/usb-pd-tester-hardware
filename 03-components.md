@@ -333,7 +333,7 @@
 | 用途 | 数量 | 说明 |
 |------|------|------|
 | SWD 接口 | 1 | SWCLK / SWDIO / GND / 3.3V |
-| UART 调试接口 | 1 | VCC(3.3V) / GND / PA9(TX) / PA10(RX)，4-pin 与 CH340 模块对齐 |
+| UART ISP 接口 | 1 | PA9(TX) / PA10(RX) / GND / 3.3V |
 
 **采购链接：**
 - 立创商城：https://www.lcsc.com/search?q=%E6%8E%92%E9%92%88+1%C3%974P+2.54mm
