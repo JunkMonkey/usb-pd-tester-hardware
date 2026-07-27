@@ -267,9 +267,9 @@
 | **安装方式** | SMD 直插 |
 | **用途** | 插入被检测设备 (DUT) 的 USB-C 母口，输出功率 |
 | **关键引脚** | VBUS(A4/A9/B4/B9), GND(A1/A12/B1/B12), D+(A6), D-(A7), CC1(A5), CC2(B5) |
-| **CC 上拉** | CC1/CC2 各 **56kΩ Rp 上拉至 VBUS_OUT**（Source/DFP 通告） |
+| **CC 上拉** | CC1/CC2 各 **4.7kΩ Rp 上拉至 VCC_3.3V**（Source/DFP 通告 3A，VBUS 可变故不能上拉到 VBUS） |
 
-> **设计意图：** USB-C 公头直接插入 DUT 的 USB-C 母口，测试仪作为充电器与 DUT 之间的中间设备，PD 诱导后输出设定电压给 DUT，同时测量 V/I/P。CC1/CC2 的 56kΩ Rp 上拉告知 DUT "我是 Source"，DUT 检测到 Rp 后打开 VBUS 受电通路。
+> **设计意图：** USB-C 公头直接插入 DUT 的 USB-C 母口，测试仪作为充电器与 DUT 之间的中间设备，PD 诱导后输出设定电压给 DUT，同时测量 V/I/P。CC1/CC2 的 4.7kΩ Rp 上拉至 3.3V 告知 DUT "我是 Source，可供 3A"，DUT 检测到 Rp 后打开 VBUS 受电通路。⚠️ Rp 不能上拉到 VBUS（VBUS 在 5~20V 间变化，会导致 DUT 误判供电能力）。
 >
 > ⚠️ USB 2.0 仅用 A 面差分对（A6=D+, A7=D-），B 面（B6/B7）及 SuperSpeed（TX/RX）、SBU 引脚全部 NC。
 

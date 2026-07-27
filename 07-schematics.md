@@ -52,7 +52,7 @@
 | 位号 | 搜索词 | 说明 |
 |------|--------|------|
 | **J1** | `TYPE-C 16P 卧贴` | USB-C 母座，PD 输入 |
-| **J2** | `USB-C 公头 24P` | USB-C 公头，插入被检测设备 (DUT)，CC1/CC2 各 56kΩ 上拉 |
+| **J2** | `USB-C 公头 24P` | USB-C 公头，插入被检测设备 (DUT)，CC1/CC2 各 4.7kΩ 上拉至 3.3V |
 | **J3** | `排针 1x4P 2.54mm` | SWD 调试接口 |
 | **J4** | `排针 1x3P 2.54mm` | UART 调试串口 (TX/RX/GND) |
 
@@ -154,13 +154,13 @@ USB-C VBUS (J1.VBUS)
 R_SHUNT.Pad2 (分流电阻负载侧)
   ├── USB-C.VBUS (J2.A4/A9/B4/B9) → 被检测设备供电
   ├── U6.Pin5 (VBUS ESD)   ← USBLC6-2SC6 VBUS 电源轨保护
-  ├── R_CC1 (56kΩ) → J2.CC1 (A5)   ← Source Rp 上拉
-  ├── R_CC2 (56kΩ) → J2.CC2 (B5)   ← Source Rp 上拉
+  ├── R_CC1 (4.7kΩ) → J2.CC1 (A5)   ← Source Rp 上拉至 VCC_3.3V
+  ├── R_CC2 (4.7kΩ) → J2.CC2 (B5)   ← Source Rp 上拉至 VCC_3.3V
   └── R_VBUS (100Ω) → INA226.VBUS (Pin2)
       └── C15 (0.1µF) → GND    ← VBUS 检测滤波
 ```
 
-> ⚠️ CC1/CC2 的 56kΩ Rp 上拉至 VBUS_OUT 是 USB-C Source（DFP）规范要求。对端 Sink 检测到 Rp 后才会打开 VBUS 受电通路。56kΩ = Default USB Power（最大 3A）。
+> ⚠️ CC1/CC2 的 4.7kΩ Rp 上拉至 VCC_3.3V（不是 VBUS！），通告 3A 供电能力。VBUS 在 5~20V 变化，若 Rp 上拉到 VBUS 会导致 CC 分压漂移、DUT 误判供电能力。
 
 ### 6.3 Kelvin Sense（四线开尔文接法—关键精度保证！）
 
@@ -233,8 +233,8 @@ USB-C.D+ (J2.A6)  ── U6.Pin1 (I/O1 IN) ── U6.Pin6 NC (悬空)
 USB-C.D- (J2.A7)  ── U6.Pin3 (I/O2 IN) ── U6.Pin4 NC (悬空)
 USB-C.VBUS (J2.A4/A9/B4/B9) ── U6.Pin5 (VBUS)  ← VBUS_OUT 网络，ESD 电源轨保护
 
-USB-C.CC1 (J2.A5) ── R_CC1 (56kΩ) ── VBUS_OUT  ← Source Rp 上拉
-USB-C.CC2 (J2.B5) ── R_CC2 (56kΩ) ── VBUS_OUT  ← Source Rp 上拉
+USB-C.CC1 (J2.A5) ── R_CC1 (4.7kΩ) ── VCC_3.3V  ← Source Rp 上拉（固定 3.3V，不接 VBUS）
+USB-C.CC2 (J2.B5) ── R_CC2 (4.7kΩ) ── VCC_3.3V  ← Source Rp 上拉（固定 3.3V，不接 VBUS）
 
 USB-C.GND (J2.A1/A12/B1/B12) ── GND
 USB-C.B6/B7 (D+/D- B面) ── NC
@@ -243,7 +243,7 @@ USB-C SuperSpeed/SBU 引脚 ── 全部 NC
 
 > USB-C 公头插入被检测设备 (DUT)，仅输出功率。D+/D- 不接 MCU，但保留 ESD 防护。U6.Pin5 接 VBUS_OUT（分流电阻负载侧），为 VBUS 线提供完整 ESD 保护路径（I/O→VBUS→GND 泄放回路）。Pin6/Pin4 悬空（D+/D- 不穿通到 MCU）。
 >
-> ⚠️ CC1/CC2 必须通过 56kΩ Rp 上拉至 VBUS_OUT，告知对端 Sink "我是 Source"。不加 Rp 则对端不会打开 VBUS 受电通路。USB 2.0 仅用 A 面 D+/D-（A6/A7），B 面（B6/B7）及 SuperSpeed 引脚全部 NC。
+> ⚠️ CC1/CC2 必须通过 4.7kΩ Rp 上拉至 VCC_3.3V（不是 VBUS_OUT），告知对端 Sink "我是 Source，可供 3A"。不加 Rp 则对端不会打开 VBUS 受电通路。VBUS 在 5~20V 变化，Rp 上拉到 VBUS 会导致 CC 分压漂移。USB 2.0 仅用 A 面 D+/D-（A6/A7），B 面（B6/B7）及 SuperSpeed 引脚全部 NC。
 
 ### 6.9 CC1/CC2（PD 协议 + Sink 识别）
 
@@ -426,7 +426,7 @@ CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
 - [ ] CC1/CC2 均接 5.1kΩ 下拉至 GND
 - [ ] D+/D- 经 U5 (USBLC6-2SC6) 穿通后到 MCU PA11/PA12
 - [ ] USB-C 公头 U6 (USBLC6-2SC6) Pin5 接 VBUS_OUT（J2 VBUS 侧），Pin6/Pin4 悬空
-- [ ] J2 CC1(A5)/CC2(B5) 各经 56kΩ Rp 上拉至 VBUS_OUT（Source 通告）
+- [ ] J2 CC1(A5)/CC2(B5) 各经 4.7kΩ Rp 上拉至 VCC_3.3V（Source 通告 3A，不能接 VBUS）
 - [ ] J2 SuperSpeed (TX/RX)、SBU、B 面 D+/D- 全部 NC
 - [ ] BOOT0 有 10kΩ 下拉 + SW3 上拉至 +3V3
 - [ ] NRST 有 10kΩ 上拉 + 100nF 滤波电容 + SW4 下拉至 GND
@@ -480,7 +480,7 @@ CH32V203.PC15 (Pin4) ── NC (预留 GPIO)
 | OLED1 | C5139758 | HS96L01W4S03 0.96" SPI OLED 128×64 |
 | SW1~SW4 | 搜 `TS-1102S` | 4 个触觉按键 (MODE/CONFIRM/BOOT/RST) |
 | J1 | C2765186 | USB-C 16P 卧贴 |
-| J2 | 搜 `USB-C 公头 24P` | USB-C 公头，插入被检测设备 (DUT)，CC1/CC2 各 56kΩ 上拉 |
+| J2 | 搜 `USB-C 公头 24P` | USB-C 公头，插入被检测设备 (DUT)，CC1/CC2 各 4.7kΩ 上拉至 3.3V |
 
 无源器件可使用立创 EDA 基础库器件，投板前替换为立创商城编号对应器件以确保封装正确。
 

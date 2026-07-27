@@ -129,8 +129,8 @@
 |-----|------|------|
 | A1/A12/B1/B12 | GND | 系统地 |
 | A4/A9/B4/B9 | VBUS | 功率输出至 DUT（经分流电阻测量） |
-| A5 | CC1 | **56kΩ Rp 上拉至 VBUS_OUT**（Source 通告） |
-| B5 | CC2 | **56kΩ Rp 上拉至 VBUS_OUT**（Source 通告） |
+| A5 | CC1 | **4.7kΩ Rp 上拉至 VCC_3.3V**（Source 通告 3A） |
+| B5 | CC2 | **4.7kΩ Rp 上拉至 VCC_3.3V**（Source 通告 3A） |
 | A6 | D+ | 经 U6 (USBLC6-2SC6) ESD 保护，不接 MCU |
 | A7 | D- | 经 U6 (USBLC6-2SC6) ESD 保护，不接 MCU |
 | B6/B7 | D+/D- | NC（USB 2.0 仅用 A 面差分对） |
@@ -138,7 +138,7 @@
 | A8/B8 | SBU1/SBU2 | NC |
 | A10/A11/B10/B11 | RX1/RX2 | NC（SuperSpeed） |
 
-> ⚠️ CC1/CC2 各需 **56kΩ Rp 上拉至 VBUS_OUT**，这是 USB-C Source（DFP）规范要求。对端 Sink 检测到 Rp 后才会打开 VBUS 受电通路。56kΩ 对应 Default USB Power（最大 3A）。
+> ⚠️ CC1/CC2 各需 **4.7kΩ Rp 上拉至 VCC_3.3V**，这是 USB-C Source（DFP）规范要求。对端 Sink 检测到 Rp 后才会打开 VBUS 受电通路。4.7kΩ 到 3.3V 等效 10kΩ 到 5V，通告 3A 供电能力。⚠️ Rp 不能上拉到 VBUS——VBUS 在 5~20V 间变化，会导致 CC 分压漂移，DUT 误判供电能力。
 >
 > U6.Pin5 (VBUS) 接 VBUS_OUT 网络（J2 VBUS 引脚侧），为 DUT 供电线提供完整 ESD 保护。
 
